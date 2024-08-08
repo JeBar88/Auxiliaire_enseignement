@@ -10,4 +10,10 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 - Simulation : explication de la méthode de simulation Monte-Carlo et ses applications dans R
 - TVaR : comment calculer la mesure de risque VaR et TVaR dans R pour différents cas de figure
 
+## Code
+
+Ce dossier contient des codes R pour diveres notions du cours
+- `Contriubtion.R` : exemple de code pour calculer la contribution à la mesure VaR et TVaR
+- `Simulation_SA.R` : exemple de code pour la simualtion de v.a. composée
+
 ## Exercices 
