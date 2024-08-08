@@ -1,0 +1,274 @@
+---
+title: "VaR et TVaR"
+author: "Jérémie Barde"
+date: "31 janvier 2022"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+header-includes:
+   - \usepackage{amsmath}
+   - \renewcommand{\contentsname}{Table des matières}
+   - \renewcommand{\abstractname}{Résumé}
+abstract: Le présent document contient des exemples de codes R pour se familiariser avec les techniques pour trouver la VaR et la TVaR dans le cas discret et continu.
+---
+\newpage
+```{r include=FALSE}
+library(formatR)
+library(ggplot2)
+library(gridExtra)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Cas discret
+Dans le cas discret, il est possible de trouver la $VaR$ et la $TVaR$ de manière exacte.
+
+## Exemple 1 
+Nous avons la f.g.p. suivante :
+$$
+\mathcal{P}_X(t) = (0.5 + 0.15t + 0.25t^2 + 0.1t^3)^2
+$$
+On développe le carré pour trouver la fonction de masse de probabilité.
+$$
+\mathcal{P}_X(t) = 0.25 + 0.15t + 0.2725t^2 + 0.175t^3 + 0.0925t^4 + 0.05t^5 + 0.01t^6 
+$$
+On vérifie que les probabilités somment à 1 :
+```{R}
+fX <- c(0.25, 0.15, 0.2725, 0.175, 0.0925, 0.05, 0.01)
+sum(fX)
+```
+Pour trouver la $VaR$, on se souvient de la définition :
+$$
+F_X^{-1}(\kappa) = VaR_\kappa(X) = \inf\lbrace x \in \mathbb{R} : F_X(x) \geq u \rbrace, \quad \text{pour}~u \in (0,1)
+$$
+On peut voir ça comme la plus petite prime à charger pour être sûr à au moins $100\kappa\%$ qu'on est capable de payer si une réclamation survient.
+```{r}
+k <- 0.90
+FX <- cumsum(fX)
+
+VaR <- min(which(FX >= k)) - 1  # On fait -1 comme les vecteurs commencent à 1 et non à 0
+VaR
+# On peut s'en convaincre en faisant un tableau
+cbind(c(0:6), FX)
+```
+Ensuite, pour la $TVaR$, on choisit l'une des trois formules qu'on connait:
+$$
+\begin{aligned}
+TVaR_\kappa(x) &= \frac{1}{1-\kappa}\int_0^\infty VaR_S(X)ds\\
+&= \frac{1}{1-\kappa}\left( E\left[X \times 1_{\lbrace x > VaR_\kappa(X) \rbrace}\right] + VaR_\kappa(X)(F_X(VaR_\kappa(X)) - \kappa)  \right)\\
+&= VaR_\kappa(X) + \frac{1}{1- \kappa} \pi_X(VaR_\kappa(X))
+\end{aligned}
+$$
+Trouvons maintenant la $TVaR$ en utilisant les deux dernières formules, qui sont généralement plus simples à utiliser.
+```{r}
+# Plus visuel
+# (sum(5:6 * fX[(5+1):(6+1)]) + VaR * (FX[VaR + 1] - k))/(1 - k)   
+
+# Préférable comme ceci, car on peut facilement changer la valeur de k
+TVaR <- (sum((VaR+1):(length(fX)-1) * fX[c(VaR+2):(length(fX))]) + VaR * (FX[VaR + 1] - k))/(1 - k)
+TVaRSL <- VaR + sum(pmax(0:6 - VaR, 0) * fX)/(1 - k)
+sum(0:6 * fX)
+cbind(TVaR, TVaRSL)
+```
+
+## Exemple 2
+On a $Y \sim Po(10)$ et on cherche la $VaR$ et la $TVaR$ pour $\kappa=0.9$.
+```{r}
+vk <- 0:1000
+fY <- dpois(vk, 100)
+FY <- cumsum(fY)
+
+# On s'assure que la f.m.p. somme à 1
+sum(fY)
+
+VaR <- function(k) min(which(FY >= k)) - 1 
+# VaR(0.9) == qpois(0.9, 100) # On aurait pu utiliser directement qpois
+
+TVaR <- function(k) {VaR(k) + sum(pmax(vk - VaR(k),0) * fY)/(1 - k)}
+```
+On peut tracer le graphique.
+```{r, fig.height = 3.7, fig.width=6, fig.align='center', echo=FALSE, eval=TRUE}
+v0 <- seq(0, 0.99, by = 0.001)
+f <- sapply(v0, function(k) VaR(k))
+matplot(v0, f, type = "l", ylim = c(0, 150), lwd = 2, xlab = "k", ylab = "", 
+        main = "VaR et TVaR en fonction de k")
+g <- sapply(v0, function(k) TVaR(k))
+matplot(v0, g, type = "l", col = "blue", lwd = 2, add = TRUE)
+legend(0.05, 145, legend=c("VaR", "TVaR"),
+       col=c("black", "blue"), lty=1:1, lwd = 2:2, cex=0.6)
+```
+
+## Exemple 3
+On a la densité suivante et on cherche $VaR_{0.95}(K)$ et $TVaR_{0.95}(K)$ :
+$$
+\begin{aligned}
+\Pr(K = k) =
+\begin{cases}
+0.20&,k=0 \\
+0.30&,k=5\\
+0.40&,k=20\\
+0.08&,k=500\\
+0.02&,k=2000
+\end{cases}
+\quad
+F_K(k) =
+\begin{cases}
+0.20&,k=0 \\
+0.50&,k=5\\
+0.90&,k=20\\
+0.98&,k=500\\
+1&,k=2000
+\end{cases}
+\end{aligned}
+$$
+La méthode reste simillaire mais il faut faire un ajustement.
+```{r}
+k <- 0.95
+x <- c(0, 5, 20, 500, 2000)
+fx <- c(0.2, 0.3, 0.4, 0.08, 0.02)
+Fx <- cumsum(fx)
+
+VaR <- x[min(which(Fx >= k)) - 1 + 1] # Il faut aller chercher la bonne valeur dans nos x
+TVaR <- VaR + sum(pmax(x - VaR, 0) * fx)/(1-k)
+cbind(VaR, TVaR)
+```
+
+
+# Cas continue
+Pour le cas continu, il n'est pas vraiment possible de trouver la valeur exacte de la TVaR sauf s’il existe une forme analytique.
+
+## Exemple 1
+On a deux lignes d'affaires et on modélise les coûts de chacune par $X \sim Erlang(5, 0.1)$ et $Y \sim MxExp(0.45,0.55, 0.02,0.05)$. On veut trouver la $TVaR_{0.9}(X)$ et la $TVaR_{0.9}(Y)$. Il faut commencer par trouver la VaR. Dans les deux cas, il faut le faire numériquement.
+```{R}
+p <- c(0.45, 0.55)
+l <- c(0.02, 0.05)
+b <- 0.1
+n <- 5
+
+FX <- function(x) pgamma(x, n, b)
+FY <- function(y) p[1] * pexp(y, l[1]) + p[2] * pexp(y, l[2])
+
+VaRX <- function(k) optimize(function(x) abs(FX(x) - k), c(0, 500))$min
+VaRY <- function(k) optimize(function(y) abs(FY(y) - k), c(0, 1000))$min
+```
+Maintenant, il faut trouver les formes analytiques de chacune des $TVaR$. On trouve l'espérance tronquée de $X$ : 
+$$
+\begin{aligned}
+E[x \times 1_{\lbrace x > d \rbrace}] &= \int_d^\infty x f_X(x)dx\\
+&= \int_d^\infty \frac{\beta^{\alpha}}{\Gamma(n)} x^{(n+1)-1} e^{-\beta x} dx \\
+&= \frac{\beta^\alpha \Gamma(n+1)}{\Gamma(n)\beta^{\alpha+1}} \int_d^\infty \frac{\beta^{\alpha+1}}{\Gamma(n+1)} x^{(n+1)-1} e^{-\beta x}dx\\
+&= \frac{n}{\beta}\bar{H}(d, n+1, \beta)
+\end{aligned}
+$$
+Pour $Y$, on trouve plutôt $\pi_Y(d)$, car on peut utiliser la définition suivante,
+$$
+\pi_Y(d) = \int_d^\infty\bar{F}_X(x)dx
+$$
+et le calcul se fait facilement :
+$$
+\begin{aligned}
+\pi_Y(d) &= \int_d^\infty p_1 \cdot e^{-\beta_1y} + p_2 \cdot e^{-\beta_2y} dy\\
+\pi_Y(d) &= \frac{p_1}{\beta_1}\int_d^\infty \beta_1 e^{-\beta_1y} dy + \frac{p_2}{\beta_2} \int_d^\infty  \beta_2 e^{-\beta_2y} dy\\
+&= p_1 \cdot \frac{1}{\beta_1} e^{-\beta_1d} + p_2 \cdot \frac{1}{\beta_2}  e^{-\beta_2d}
+\end{aligned}
+$$
+
+On trouve les deux TVaR suivantes :
+$$
+\begin{aligned}
+TVaR_\kappa(X) &= \frac{n}{\beta(1-\kappa)}\bar{H}(VaR_\kappa(X), n+1, \beta)\\
+TVaR_\kappa(Y) &= VaR_\kappa(Y) +  \frac{1}{1-k} \left(  p_1 \cdot \frac{1}{\beta_1} e^{-\beta_1 \cdot VaR_\kappa(Y)} + p_2 \cdot \frac{1}{\beta_2}  e^{-\beta_2 \cdot VaR_\kappa(Y)} \right)
+\end{aligned}
+$$
+Bien sûr, on aurait pu prendre les formules directement dans l'annexe. Il nous reste à évaluer les $TVaR$.
+```{r}
+k <- 0.90
+TVaRX <- function(k) n/b * pgamma(VaRX(k), n + 1, b, lower.tail = FALSE)/(1-k)
+TVaRY <- function(k) VaRY(k) + sum(p * (1/l) * (1-pexp(VaRY(k), l)))/(1-k)
+
+# Formule de l'annexe pour Y
+TVaRYtest <- sum((p*((1/l)*(1-pexp(VaRY(k), l)) + VaRY(k)*(1-pexp(VaRY(k), l)))))/(1-k)
+
+# Vérification
+round(cbind(TVaRX(k), TVaRY(k), TVaRYtest),2)
+```
+
+Déjà, on observe que $Y$ a une $TVaR$ à $\kappa=0.9$ plus élevé que $X$. Regardons un graphique pour se convaincre que $Y$ peut être plus dangereuse que $X$ dans les cas extrêmes.
+```{r, figures-side, fig.show="hold", out.width="50%", echo=FALSE, eval=TRUE}
+vk <- seq(0, 0.999, by = 0.001)
+VX <- sapply(vk, function(k) VaRX(k))
+VY <- sapply(vk, function(k) VaRY(k))
+
+matplot(vk, VX, type = "l", lwd = 2, xlab = "k", ylab = "", main = "VaR en fonction de k")
+matplot(vk, VY, type = "l", lwd = 2, col = "blue", add = TRUE)
+legend(0.05, 132, legend=c("VaRX", "VaRY"),
+       col=c("black", "blue"), lty=1:1, lwd = 2:2, cex=0.8)
+
+TVX <- sapply(vk, function(k) TVaRX(k))
+TVY <- sapply(vk, function(k) TVaRY(k))
+
+matplot(vk, TVX, type = "l", lwd = 2, xlab = "k", ylab = "", ylim = c(0, 500), main = "TVaR en fonction de k")
+matplot(vk, TVY, type = "l", lwd = 2, col = "blue", add = TRUE)
+legend(0.05, 450, legend=c("TVaRX", "TVaRY"),
+       col=c("black", "blue"), lty=1:1, lwd = 2:2, cex=0.8)
+
+```
+Visiblement, $Y$ peut engendrer des coûts bien plus élevés que $X$.
+
+### Pour le plaisir : utilisation de ggplot
+On peut aussi faire le graphique avec ` ggplot`. Cependant, çe n'est pas nécessaire de savoir le faire.
+```{r, fig.height=2.5, fig.align='center', echo=FALSE, eval=TRUE}
+dat <- data.frame(vk, VX, VY, TVX, TVY)
+
+g1 <- ggplot(dat, aes(x=vk)) + 
+  geom_line(aes(y=VX, col = "VaRX"))+
+  geom_line(aes(y=VY, col = "VaRY")) + 
+  theme_classic()+
+  theme(legend.position = c(0.15, 0.8)) +
+  labs(x="k", y="", col = "", subtitle = "VaR en fonction de k")
+  
+g2 <- ggplot(dat, aes(x=vk)) + 
+  geom_line(aes(y=TVX, col = "TVaRX"))+
+  geom_line(aes(y=TVY, col = "TVaRY")) + 
+  theme_classic()+
+  theme(legend.position = c(0.20, 0.8)) +
+  labs(x="k", y="", col = "", subtitle = "TVaR en fonction de k")
+
+grid.arrange(g1, g2, ncol=2)
+```
+
+## Exemple 2
+On a $Y \sim We(\tau, \beta)$ et on sais que $E[Y] = 20$ et $Var(Y) = 2000$. On cherche $VaR_{0.95}(Y)$ et $TVaR_{0.95}(Y)$. On commence par trouver les paramêtres de la lois.
+$$
+E[Y] = \frac{1}{\beta}\Gamma\left(1+\frac{1}{\tau}\right), \quad Var(Y) = \frac{1}{\beta^2}\Gamma\left(1+\frac{2}{\tau}\right) - E[Y]^2
+$$
+On va isoler un paramêtre pour pouvoir utiliser `optimize`.
+$$
+\beta = \frac{\Gamma\left(1+\frac{1}{\tau}\right)}{20} \Rightarrow \frac{20^2}{\left(\Gamma\left(1+\frac{1}{\tau}\right)\right)^2} \Gamma\left(1+\frac{2}{\tau}\right) = 2000
+$$
+Maitenant on peut utiliser `optimize` pour trouver $\tau$ et ensuite trouver $\beta$.
+```{r}
+f <- function(par) 20^2/(gamma(1 + 1/par))^2 * gamma(1 + 2/par) - 20^2
+f(0.8);f(10)
+t <- optimize(function(x) abs(f(x) - 2000), c(0, 1))$min
+b <- gamma(1 + 1/t)/20
+cbind(t, b)
+```
+Avec les paramêtres il donc possible de trouver $VaR_{0.95}(Y)$ et $TVaR_{0.95}(Y)$.
+```{r}
+k <- 0.95
+VaR <- 1/b * (-log(1 - k))^(1/t) # Annexe
+TVaR <- 1/(b*(1-k)) * pgamma(-log(1 - k), 1 + 1/t, b^t, lower.tail = F)
+cbind(VaR, TVaR)
+```
+
+
+
+
+
+
+
+
+

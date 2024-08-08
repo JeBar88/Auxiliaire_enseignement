@@ -1,0 +1,357 @@
+---
+title: "Simulation"
+author: "Jérémie Barde"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+header-includes:
+   - \usepackage{amsmath}
+   - \renewcommand{\contentsname}{Table des matières}
+   - \renewcommand{\abstractname}{Résumé}
+abstract: Le présent document contient des exemples de codes R sur la mise en oeuvre de la méthode de simulation Monte-Carlo et de ses applications. 
+---
+\newpage
+```{r include=FALSE}
+library(knitr)
+library(actuar)
+library(moments)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Théorème de la fonction quantile
+Le théorème de la fonction quantile est utile pour la simulation. 
+$$
+F_X^{-1}(U) \overset{\mathcal{D}}= X 
+$$
+Il permet de simuler des réalisations d'une v.a. $X$. On commence par simuler des réalisations d'une loi $U(0, 1)$. On utilise `runif` pour simuler arbitrairement 5 réalisations.
+```{r}
+runif(5)
+```
+On remarque que, si l’on relance la ligne de code, les valeurs changent. C'est normal, puisque l'on souhaite obtenir des réalisations aléatoires. D'ailleurs, il est possible de mettre un `set.seed` initialement pour toujours avoir les mêmes valeurs retournées.
+```{r}
+set.seed(2022)
+runif(5)
+```
+Si l’on relance le code, les valeurs retournées sont toujours les mêmes. 
+
+**Important** : il faut bien comprendre qu'avec la simulation, on obtient des réalisations, soit des valeurs dans le domaine de la loi utilisée et non la densité de la v.a.
+
+# Application à d'autres lois
+On a déjà simulé 5 réalisations d'une loi uniforme et on veut maintenant simuler 5 réalisations d'une loi exponentielle $\beta = 0.1$. Il faut donc inverser la fonction de répartition de la loi exponentielle et l'évaluer à $U$.
+$$
+F_X^{-1}(U) = -\frac{1}{\beta}\ln(1-U),~\text{où}~U \sim Unif(0,1)
+$$
+```{r}
+b <- 0.1
+U <- runif(5)
+qexp(U, b)
+```
+On obtient bien 5 réalisations d'une loi exponentielle $\beta=0.1$.
+
+# Fonction R
+ Évidemment, il existe déjà, en R, des fonctions pour simuler plusieurs lois de probabilité. Pour la loi exponentielle, il suffit de faire `rexp`. Bien sûr, il est important de comprendre la méthodologie derrière. Si l’on reprend l'exemple de tantôt :
+```{r}
+rexp(5, b)
+```
+On peut faire la même chose avec les autres lois déjà programmées dans R. Par exemple, la loi Gamma ne s'inverse pas à la main, on peut utiliser `rgamma`.
+
+# Méthode Monte Carlo
+
+## Fonction de répartition empirique
+Une fois qu'on a simulé des réalisations, on veut pouvoir travailler avec celle-là. On commence par trouver la fonction de répartition empirique.
+$$
+F_X^{(m)}(x) \simeq \frac{1}{m} \sum_{j=1}^m 1_{\lbrace X^{(j)} \leq x\rbrace}
+$$
+
+### Exemple
+\label{ex:Gamma}
+On a 1000 réalisations qui proviennent d'une $Gamma(2, 5)$ et on veut trouver la fonction de répartition empirique.
+```{r}
+par <- c(2, 0.5)
+n <- 1000
+X <- rgamma(n, par[1], par[2])
+k <- 10
+
+# Première façon
+Fn <- function(x) mean(X < x)
+
+# dexième façon
+Fm <- ecdf(X)
+
+table <- cbind(Fn(k), Fm(k), pgamma(k, par[1], par[2]))
+colnames(table) <- c("Fn(10)", "Fm(10)", "FX(10)")
+table
+```
+
+### Représentation graphique
+Regardons un graphique de la fonction de répartition empirique quand $m$ augmente.
+```{r graphi, figures-side, fig.show="hold", out.width="70%"}
+set.seed(2022)
+data <- sapply(c(10, 50, 250, 10000), function(k) rgamma(k, par[1], par[2]))
+F10 <- ecdf(data[[1]])
+F50 <- ecdf(data[[2]])
+F250 <- ecdf(data[[3]])
+F10000 <- ecdf(data[[4]])
+
+curve(pgamma(x, par[1], par[2]), ylim = c(0, 1), xlim = c(0, 20), lwd = 2
+      , ylab = "F_m")
+curve(F10, xlim = c(0, 20), lwd = 1, col = "blue", add = T)
+curve(F50, xlim = c(0, 20), lwd = 1, col = "red", add = T)
+curve(F250, xlim = c(0, 20), lwd = 1, col = "green", add = T)
+curve(F10000, xlim = c(0, 20), lwd = 2, col = "pink", add = T)
+legend(15, 0.8, legend=c("Théorique", "m=10", "m=50", "m=250", "m=10000"),
+       col=c("black", "blue", "red", "green", "pink"), lty=1:1, cex=0.8)
+```
+
+On constate que plus $m$ augmente, plus on est près de la fonction de répartition théorique. C’est ce qu’on s’attendait à voir.
+
+## Espérance, variance et autres quantitées
+On veut trouver différentes quantités reliées aux réalisations qu'on a pour estimer les quantités réelles.
+$$
+\begin{aligned}
+\bar{X} = \frac{1}{m} \sum_{j=1}^m x_j, && S^2 = \frac{1}{m-1} \sum_{j=1}^m (x_j - \bar{X})^2\\
+\hat{\gamma} = \frac{1}{m} \sum_{j=1}^m \left( \frac{(x_j - \bar{X})}{\sqrt{S^2}} \right)^3, && \widehat{\pi_X(d)} = \frac{1}{m} \sum_{j=1}^m \max(x_j - d, 0)
+\end{aligned}
+$$
+
+### Exemple
+On a 500 000 réalisations d'une loi de poisson $\lambda = 3$. On veut trouver l'espérance, la variance, le skewness, $E[X \times 1\lbrace x \leq 2 \rbrace]$ et $\pi_X(2)$ empirique.
+```{r exemple poisson}
+set.seed(2022)
+m <- 5E5
+Y <- rpois(m, 3)
+d <- 2
+# Esperance et variance
+esp <- mean(Y)
+var <- var(Y)
+# Skewness (package moments)
+ske <- 1/m * sum(((Y - esp)/(sd(Y)))^3)
+ske <- skewness(Y)
+# Espérance tronquée
+espT <- sum(Y[Y <= 2])/m
+espT <- mean(Y * I(Y <= 2))
+# Stop-loss
+sl <- 1/m * sum(pmax(Y - d, 0))
+round(cbind(esp, var, ske, espT, sl),3)
+```
+
+## VaR
+Il est également possible d'approximer la VaR.
+$$
+VaR_\kappa(x) \simeq F_X^{(m)-1}(\kappa) = \inf \lbrace X^{(j)}, j= 1,2, \ldots, m; F_X(X^{(j)}) \geq \kappa \rbrace
+$$
+On reprend l'exemple \ref{ex:Gamma} et on veut trouver la $VaR_{0.99}(X)$.
+```{r}
+k <- 0.99
+# Première façon
+Empirique1 <- sort(X)[k * n]
+# Deuxième façon
+Empirique2 <- quantile(X, k)
+Theorique <- qgamma(k, par[1], par[2])
+cbind(Empirique1, Empirique2, Theorique)
+```
+On n'est pas si loin de la vraie valeur, mais on pourrait être plus proche si on augmentait le nombre d'observations. On refait le calcul avec $m=1000000$.
+```{r}
+m <- 1E6
+k <- 0.99
+X <- rgamma(m, par[1], par[2])
+# Première façon
+Empirique1 <- sort(X)[k * m]
+# Deuxième façon
+Empirique2 <- quantile(X, k)
+Theorique <- qgamma(k, par[1], par[2])
+cbind(Empirique1, Empirique2, Theorique)
+```
+On est déjà beaucoup plus proche.
+
+## TVaR
+La TVaR n'est pas toujours un calcul très évident, il peut être utile de savoir l'approximer.
+$$
+TVaR_\kappa(X) \simeq  \frac{1}{1-\kappa} \left( \frac{1}{m} \sum_{j=j_0+1}^m X^{(j)} + X^{(j_0)} (F^{(m)}(X^{(j_0)}) - \kappa) \right)
+$$
+Où $X^{(j_0)} = F^{(m)-1}(x)$.
+
+### Exemple : continue
+On a $X \sim Pareto(3, 10)$ et on veut approximer la $TVaR_{0.9}(X)$.
+```{r}
+set.seed(2022)
+m <- 1E6
+a <- 3
+l <- 10
+k <- 0.90
+X <- rpareto(m, a, l)
+Fm <- ecdf(X)
+VaR <- quantile(X, k)[[1]]
+## Calcul TVaR
+
+# Première façon : espérance tronquée
+F1 <- 1/(1-k) * (mean(X * I(X > VaR)) + VaR * (Fm(VaR) - k))
+# Deuxième façon : stop-loss
+F2 <- VaR + 1/m * sum(pmax(X - VaR, 0))/(1-k)
+# Troisème façon : rapide si loi continue
+F3 <- mean(X[X > VaR])
+
+cbind(F1, F2, F3)
+```
+Ici, on peut remarquer que la deuxième portion de la première façon donne 0.
+
+### Exemple : discret
+On a $X \sim Bin(20, 0.35)$ et on veut approximer la $TVaR_{0.9}(N)$.
+```{r}
+set.seed(2022)
+m <- 1E6
+n <- 20
+p <- 0.35
+k <- 0.90
+N <- rbinom(m, n, p)
+Fm <- ecdf(N)
+VaR <- quantile(N, k)[[1]]
+## Calcul TVaR 
+
+# Première façon : espérance tronquée
+F1 <- 1/(1-k) * (mean(N * I(N > VaR)) + VaR * (Fm(VaR) - k))
+# Deuxième façon : stop-loss
+F2 <- VaR + 1/m * sum(pmax(N - VaR, 0))/(1-k)
+# Troisième façon : Définition
+F3 <- mean(sort(N)[(0.9*m +1):m])
+
+cbind(F1, F2, F3)
+```
+Ici, on ne peut pas enlever la deuxième portion de la première façon, car elle ne donne pas nécessairement 0.
+
+## Convolution
+Il est aussi possible d'approximer des produits de convolution.
+
+### Exemple cas exponentielle
+On a $X_i \sim Exp(\lambda),~i = 1, 2, \ldots, n$ et $S = \sum_{i=1}^n X_i$.
+$$
+\begin{aligned}
+S &= -\frac{1}{\lambda} \ln(1-U_1) + \cdots+ \frac{1}{\lambda} \ln(1-U_n)\\
+&= -\frac{1}{\lambda} (\ln(1-U_1) + \cdots+  \ln(1-U_n))\\
+&= -\frac{1}{\lambda} \ln ((1-U_1) \times \cdots \times (1-U_n))\\
+&= -\frac{1}{\lambda} \ln (U_1 \times \cdots \times U_n)
+\end{aligned}
+$$
+Ce qui devient une technique pour simuler une loi Erlang manuellement. On peut l'essayer :
+```{r}
+m <- 1E5
+l <- 0.1
+U1 <- runif(m)
+U2 <- runif(m)
+S <- -1/0.1 * log(U1 * U2)
+EspEmp <- mean(S)
+EspThe <- mgamma(1, 2, l)
+cbind(EspEmp, EspThe)
+```
+
+### Exemple : loi bernouilli
+On veut approximer la convolution de 10 v.a bernouilli, $S = \sum_{j=1}^{10}I_j$ :
+```{r}
+set.seed(2022)
+m <- 1E6
+p <- 0.75
+I <- sapply(1:10, function(i) rbinom(m, 1, p))
+
+S <- rowSums(I)
+
+EspEmp <- mean(S)
+EspThe <- sum(dbinom(0:10, 10, p) * 0:10)
+cbind(EspEmp, EspThe)
+```
+On obtient bel et bien que $S \sim Bin(10, 0.75)$. 
+
+### Exemple : loi Erlang et pareto
+La simulation devient très pratique quand on veut faire le produit de convolution entre deux lois où l’on ne connaît pas le résultat. Par exemple, on a $X \sim Erl(3, 0.5)$, $Y \sim Pareto(3, 10)$ et $S = X + Y$. Voici l'intégrale qu'il faudrait résoudre pour trouver $F_S(25)$.
+$$
+\begin{aligned}
+F_S(25) &= \int_0^{25} F_Y(k) f_X(s-k)dk\\
+& = \int_0^{25} \left(1-\left( \frac{10}{10+k}\right)^3\right) \cdot \frac{0.5^3}{\Gamma(3)}(25-k)^2e^{-0.5(25-k)}dk
+\end{aligned}
+$$
+Ce n'est pas une intégrale plaisante à résoudre. On obtiendrait que $F_S(25) = 0.9532$, trouvé à l'aide de (https://www.desmos.com). Voyons avec la simulation :
+```{r}
+m <- 1E6
+X <- rgamma(m, 3, 0.5)
+Y <- rpareto(m, 3, 10)
+S <- X + Y
+
+Fm <- ecdf(S)
+Fm(25)
+```
+On obtient une valeur qui est tout de même très proche.
+
+## Lois de mélange
+Regardons maintenant deux exemples de simulation avec une loi de mélange.
+
+### Exemple : paramêtre discret
+On a $S|\Lambda \sim Po(\Lambda)$ et 
+$$
+\begin{aligned}
+S|\Lambda \sim Po(\Lambda) && 
+\Pr(\Lambda = \lambda) = 
+\begin{cases}
+\frac{5}{7} &,\lambda=4\\
+\frac{2}{7} &,\lambda=9\\
+\end{cases}
+\end{aligned}
+$$
+On commence par simuler m réalisations de $\Lambda$ et ensuite on simule m réalisations de $S|\Lambda$.
+```{r}
+m <- 1E6
+lam <- sample(c(4, 9), m, replace = TRUE, prob = c(5/7, 2/7))
+Slam <- rpois(m, lam)
+
+Empirique <- mean(Slam)
+Theorique <- 5/7 * 4 + 2/7 * 9
+round(cbind(Empirique, Theorique),4)
+```
+
+### Exemple : Exponentielle/Gamma
+On a 
+$$
+\begin{aligned}
+S|\Lambda \sim Exp(\Lambda), && \Lambda \sim Gamma(2, 0.5)
+\end{aligned}
+$$
+Même principe que pour le premier exemple.
+```{r}
+m <- 1E5
+a <- 2
+b <- 6
+lam <- rgamma(m, a, b)
+Slam <- rexp(m, lam)
+
+Empirique <- mean(Slam)
+Theorique <- b/(a-1) # Pareto
+round(cbind(Empirique, Theorique),4)
+```
+On peut se convaincre graphiquement que le mélange donne une loi pareto.
+```{r}
+Fm <- ecdf(Slam)
+curve(ppareto(x, a, b), lwd = 4, col = "red", ylim = c(0,1), xlim = c(0, 60))
+curve(Fm, add = T, lwd = 2,col = "blue")
+legend(45, 0.8, legend=c("Pareto", "Mélange"),
+       col=c("red", "blue"), lty=1:1, cex=0.8)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
