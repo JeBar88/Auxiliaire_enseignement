@@ -9,3 +9,5 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 - Optimize : comment utiliser la fonction `Optimize` de R
 - Simulation : explication de la méthode de simulation Monte-Carlo et ses applications dans R
 - TVaR : comment calculer la mesure de risque VaR et TVaR dans R pour différents cas de figure
+
+## Exercices 
