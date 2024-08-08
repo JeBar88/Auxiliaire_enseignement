@@ -4,3 +4,8 @@ Ce dépôt contient l'ensemble des documents et fichiers de code R développés 
 # Description des dossiers
 
 ## Note explicative
+Ce dossier contient des fichiers RMarkdown expliquant différentes notions du cours.
+- Inver_Fn_Rep : explication de comment inverser des fonctions de répartition par la méthode par interpolation dans R
+- Optimize : explication de comment utiliser la fonction `Optimize` de R
+- Simulation : explication de la méthode de simulation Monte-Carlo et ses applications dans R
+- TVaR : explication de comment calculer la mesure de risque VaR et TVaR dans R.
