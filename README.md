@@ -4,7 +4,7 @@ Ce dépôt contient l'ensemble des documents et fichiers de code R développés 
 # Description des dossiers
 
 ## Note explicative
-Ce dossier contient des fichiers RMarkdown expliquant différentes notions du cours.
+Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du cours à travers plusieurs exemples d'application.
 - Inver_Fn_Rep : comment inverser des fonctions de répartition par la méthode par interpolation dans R
 - Optimize : comment utiliser la fonction `Optimize` de R
 - Simulation : explication de la méthode de simulation Monte-Carlo et ses applications dans R
