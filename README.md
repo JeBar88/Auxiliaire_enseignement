@@ -12,9 +12,10 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 
 ## Code
 
-Ce dossier contient des codes R pour diveres notions du cours
-- `Contriubtion.R` : exemple de code pour calculer la contribution à la mesure VaR et TVaR
-- `Simulation_SA.R` : exemple de code pour la simualtion de v.a. composée
+Ce dossier contient des exemples de codes R pour diverses notions du cours.
+- `Contriubtion.R` : calculer la contribution à la mesure VaR et TVaR selon le principe d'Euler
+- `Simulation_SA.R` : simualtion de v.a. composée (4 techniques)
+
 
 ## Exercices 
 Ce dossiers contient les solutions de quelques exercices pour les chapitres 1 à 4.
