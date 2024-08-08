@@ -18,4 +18,7 @@ Ce dossier contient des exemples de codes R pour diverses notions du cours.
 
 
 ## Exercices 
-Ce dossiers contient les solutions de quelques exercices pour les chapitres 1 à 4.
+Ce dossier contient les solutions de quelques exercices pour les chapitres 1 à 4.
+
+## Examen pratique
+Ce dossier contient les solutions pour une partie des examens pratiques.
