@@ -17,3 +17,4 @@ Ce dossier contient des codes R pour diveres notions du cours
 - `Simulation_SA.R` : exemple de code pour la simualtion de v.a. composée
 
 ## Exercices 
+Ce dossiers contient les solutions de quelques exercices pour les chapitres 1 à 4.
