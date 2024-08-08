@@ -1,0 +1,44 @@
+---
+title: "Chapitre 1 : Q7 Info"
+author: "Jérémie Barde"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# d)
+On commence par trouver une expréssion qui ce travaille mieux.
+$$
+\begin{aligned}
+\int_{0.6}^{0.99}VaR_u(X)du &= \int_{0.6}^{1}VaR_u(X)du - \int_{0.99}^{1}VaR_u(X)du\\
+&= \frac{1-0.6}{1-0.6} \int_{0.6}^{1}VaR_u(X)du - \frac{1-0.99}{1-0.99} \int_{0.99}^{1}VaR_u(X)du \\
+&= 0.4 \cdot TVaR_{0.6}(X) - 0.01 \cdot TVaR_{0.99}(X)
+\end{aligned}
+$$
+```{r}
+k <- 0:100
+fx <- ((5/(5 + k))^2 - (5/(6 + k))^2)/(1 - (5/106)^2)
+Fx <- cumsum(fx)
+sum(fx)
+
+p <- c(0.6, 0.99)
+VaR60 <- k[min(which(Fx >= p[1]))]
+VaR99 <- k[min(which(Fx >= p[2]))]
+cbind(VaR60, VaR99)
+
+TVaR60 <- VaR60 + (sum(pmax(0:100 - VaR60, 0) * fx))/(1-p[1])
+TVaR99 <- VaR99 + (sum(pmax(0:100 - VaR99, 0) * fx))/(1-p[2])
+cbind(TVaR60, TVaR99)
+
+theta <- (1 - p[1]) * TVaR60 - (1 - p[2]) * TVaR99
+theta
+```
+
+
+
+
+
+
+
