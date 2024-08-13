@@ -1,0 +1,91 @@
+---
+title: "Question 9 traditionnel chapitre  1"
+output: pdf_document
+date: "2022-09-26"
+---
+# Panjer
+## Contexte
+```{r, message=FALSE}
+library(actuar)
+v <- 0.95
+parPa <- c(3, 4000)
+parBN <- c(2, 1)
+```
+
+## b)
+Pour discrétiser $Y_1$ on trouve $F_{Y_1}(x)$,
+$$
+F_{Y_1}(x) = \Pr(Y_1 \leq x) = \Pr\left(vB \leq x\right) = \Pr\left(B \leq \frac{x}{v}\right) = F_B\left(\frac{x}{v}\right).
+$$
+De cette façon on peut discrétiser $B$ pour trouver $f_{\tilde{C}}(1000k)$. On fait la même chose pour $f_{\tilde{D}}(1000k)$.
+
+```{r}
+fc <- discretize(ppareto(x/v, parPa[1], parPa[2]), 0, 1000022, 1000, method = "lower")
+fd <- discretize(ppareto(x/v^2, parPa[1], parPa[2]), 0, 1000000, 1000, method = "lower")
+#sum(fc)
+#sum(fd)
+
+panjer.nbinom2 <- function(rr, beta, ff, smax){
+aa <- beta/(1 + beta)
+bb <- aa*(rr - 1)
+ll <- length(ff)
+qq <- 1/(1 + beta)
+ffs <- (qq/(1 - (1 - qq)*ff[1]))^rr
+ff<-c(ff, rep(0, smax - ll + 1))
+  for (i in 1 :smax){
+    j <- i + 1
+    ffs <- c(ffs, (1/(1 - aa*ff[1]))*sum(ff[2 :j]*ffs[i :1]*(bb*(1 :i)/i+aa)))
+}
+return(ffs)
+}
+
+fy1 <- panjer.nbinom2(2, 1, fc, length(fc))
+fy2 <- panjer.nbinom2(2, 1, fd, length(fd))
+
+DirectConvo <- function(f1, f2, smax = 1000){
+  f1 <- c(f1, numeric(smax - length(f1) + 1))
+  f2 <- c(f2, numeric(smax - length(f2) + 1))
+  fs <- f1[1] * f2[1]
+  for(i in 1:smax){
+    j <- i + 1
+    fs <- c(fs, sum(f1[1:j] * f2[j:1]))
+  }
+  fs
+}
+
+fz <- DirectConvo(fy1, fy2, smax = 1002)
+
+fz[c(1, 11, 21)]
+```
+
+## c)
+```{r}
+Fz <- cumsum(fz)
+Z <- seq(0, 1e6, 1000)
+
+VaR <- Z[min(which(Fz >= 0.99))]
+VaR
+```
+
+
+# FFT
+## Contexte
+```{r, message=FALSE}
+library(actuar)
+nFFT <- 2^10
+v <- 0.95
+parPa <- c(3, 4000)
+parBN <- c(2, 1)
+```
+
+## b)
+```{r}
+fc <- c(discretize(ppareto(x/v, parPa[1], parPa[2]), 0, 1e6, 1e3, "lower"),
+        numeric(nFFT -  length(seq(0, 1e6, 1e3))))
+fd <- c(discretize(ppareto(x/v^2, parPa[1], parPa[2]), 0, 1e6, 1e3, "lower"),
+        numeric(nFFT -  length(seq(0, 1e6, 1e3))))
+
+fzt <- (1 - parBN[2] * (fft(fc) - 1))^-parBN[1] * (1 - parBN[2] * (fft(fd) - 1))^-parBN[1]
+fz <- Re(fft(fzt, T))/nFFT
+
+fz[c(1, 11, 21)]
