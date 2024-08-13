@@ -41,6 +41,7 @@ Ce dossier contient des exemples de codes R pour diverses notions du cours.
 - `Como_Anti` : calcule des fonctions de masse multivariées dans le cas comonotonne et antimonotonne
 - `Contribution.R` : calcule exacte de la contribution au mesure de risque VaR et TVaR
 - `Discret_bivariee_base.R` : calcule des caractéristiques pour une loi bivariée de base
+- `FFT.R` : divers exemples de comment utiliser l'algorithme FFT pour faire de l'aggrégation
 - `PoTeicher_comp_simul.R` : simulation de la loi Poisson Teicher composée
 - `PoissonTeicher.R` : calcule de la fonction de masse et des caractéristique pour la loi Poisson Teicher
 - `PoissonTeicher_Comp.R` : exemple de loi Poisson Teicher composée avec loi exponentielle/Erlang, bêta différent
