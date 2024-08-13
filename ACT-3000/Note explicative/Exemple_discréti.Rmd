@@ -1,0 +1,89 @@
+---
+title: "Document sympathique"
+author: "Jérémie Barde"
+date: "2023-12-01"
+output: pdf_document
+---
+```{r}
+### Library utiles
+library(actuar)
+```
+
+Exemple 1 : On $X\sim\mathrm{PoComp(\lambda=2, F_C)}$ avec $C=10B$ où $B\sim\mathrm{Gamma}(3, 2)$. On discretise, $h=0.1$ la v.a. $C$ pour obtenir l'approximation $\tilde X$. Alors on constate que 
+$$
+F_C(x) = \Pr(C \leq x) = \Pr(10B \leq x) = \Pr(B \leq x/10) = F_B(x/10).
+$$
+Donc,
+```{r}
+nfft <- 2^11
+lam <- 2
+a <- 3
+b <- 2
+h <- 0.1
+k <- 0.95
+x <- (0:(nfft - 1))*h # on ajuste le domaine de C en fonction des informations
+fc <- pgamma(x/10, a, b) - pgamma((x-h)/10, a, b)
+
+#Vérif
+sum(fc)
+espC_test <- 10*a/b
+espC <- sum(fc * x)
+cbind(espC, espC_test) # Génial
+
+fxt <- exp(lam*(fft(fc) - 1))
+fx <- Re(fft(fxt, TRUE))/nfft
+Fx <- cumsum(fx)
+#Vérif
+sum(fc)
+espX_test <- espC_test*lam
+espX <- sum(fx * x)
+cbind(espX, espX_test) # Génial
+
+varX <- sum(x^2 * fx) - espX^2
+
+VaRX <- x[min(which(Fx >= k))]
+TVaRX <- VaRX + 1/(1 - k)*sum(pmax(x - VaRX, 0)*fx)
+```
+
+Exemple 2 : On $X = \min(B, 100)$ où $B\sim\mathrm{Gamma}(3, 2)$. On discretise, $h=0.5$ la v.a. $B$ pour obtenir l'approximation $\tilde X$. Alors on constate que 
+$$
+\Pr(\tilde X = x) = 
+\begin{cases}
+\Pr(\tilde B = x), & x < 50\\
+\Pr(\tilde B > 49), & x \geq 50
+\end{cases}
+$$
+Donc,
+``` {r}
+a <- 3
+b <- 2
+h <- 0.1
+k <- 0.90
+n <- 50
+x <- (0:n)*h # on ajute le domaine de C en fonction des informations
+fx <- pgamma(x[-(n + 1)], a, b) - pgamma((x[-(n + 1)]-h), a, b)
+fx <- c(fx, pgamma((n-1)*h, a, b, low = FALSE))
+Fx <- cumsum(fx)
+
+sum(fx)
+espX <- sum(x * fx)
+varX <- sum(x^2 * fx) - espX^2
+
+VaRX <- x[min(which(Fx >= k))]
+TVaRX <- VaRX + 1/(1 - k)*sum(pmax(x - VaRX, 0)*fx)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
