@@ -29,10 +29,8 @@ Ce dossier contient les solutions pour une partie des examens pratiques.
 
 ### Note explicative
 Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du cours à travers plusieurs exemples d'application.
-- Inver_Fn_Rep : comment inverser des fonctions de répartition par la méthode par interpolation dans R
-- Optimize : comment utiliser la fonction `Optimize` de R
-- Simulation : explication de la méthode de simulation Monte-Carlo et ses applications dans R
-- TVaR : comment calculer la mesure de risque VaR et TVaR dans R pour différents cas de figure
+- `Methode_Discretisation.Rmd` : exemple des différentes méthode de discrétisation vu dans le cours
+- `Methode aggégation.Rmd` : exemple des méthodes d'aggrégations de base
 
 ### Code
 
