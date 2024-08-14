@@ -50,7 +50,7 @@ Ce dossier contient des exemples de codes R pour diverses notions du cours.
 Ce dossier contient des documents PDF présentant les démonstrations et des exemples numériques de diverses notions du cours.
 
 - `Convo_Exp_Gam.pdf` : convolution de v.a. de loi exponentielle/Gamma lorsque les paramètres bêta son différent et gamma CRMM
-- `Convo_VA_Comp.pdf` : convolution de v.a. composée avec loi exponentielle/Gamma lorsque les paramètres bêta son différent et v.a. multivariée discète
+- `Convo_VA_Comp.pdf` : convolution de v.a. composée avec loi exponentielle/Gamma lorsque les paramètres bêta son différent ou identique et v.a. multivariée discète
 - `PoissonTeicher_ExpoEFGM.pdf` : preuves relative aux lois Poisson Teicher; pmf, espérance conditionelle et expo EFGM; espérance conditionelle
 
 
