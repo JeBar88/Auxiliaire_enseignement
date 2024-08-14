@@ -15,6 +15,7 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 ### Code
 Ce dossier contient des exemples de codes R pour diverses notions du cours.
 - `Contriubtion.R` : calculer la contribution à la mesure VaR et TVaR selon le principe d'Euler par simulation.
+- `Convolution.R` : convolution de v.a. aléatoire discrète.
 - `Simulation_SA.R` : simulation de v.a. composée (4 techniques).
 
 ### Ressources
