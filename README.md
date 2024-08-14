@@ -13,11 +13,13 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 - TVaR : comment calculer la mesure de risque VaR et TVaR dans R pour différents cas de figure
 
 ### Code
+Ce dossier contient des documents PDF présentant les démonstrations et des exemples numériques de diverses notions du cours.
 
 Ce dossier contient des exemples de codes R pour diverses notions du cours.
 - `Contriubtion.R` : calculer la contribution à la mesure VaR et TVaR selon le principe d'Euler par simulation
 - `Simulation_SA.R` : simualtion de v.a. composée (4 techniques)
 
+### Ressources
 
 ### Exercices 
 Ce dossier contient les solutions de quelques exercices pour les chapitres 1 à 4.
@@ -33,7 +35,6 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 - `Methode aggégation.Rmd` : exemple des méthodes d'aggrégations de base
 
 ### Code
-
 Ce dossier contient des exemples de codes R pour diverses notions du cours.
 - `Code_Base.R` : fonction de base pour le cours
 - `Como_Anti` : calcule des fonctions de masse multivariées dans le cas comonotonne et antimonotonne
@@ -46,7 +47,6 @@ Ce dossier contient des exemples de codes R pour diverses notions du cours.
 - `loi_comp_multi.R` : exemple de loi multivarié arbitraire composée avec loi exponentielle/Erlang, bêta identique
 
 ### Ressources
-
 Ce dossier contient des documents PDF présentant les démonstrations et des exemples numériques de diverses notions du cours.
 
 - `Convo_Exp_Gam.pdf` : convolution de v.a. de loi exponentielle/Gamma lorsque les paramètres bêta son différent et gamma CRMM
