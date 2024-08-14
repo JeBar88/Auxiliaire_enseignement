@@ -53,6 +53,7 @@ Ce dossier contient des documents PDF présentant les démonstrations et des exe
 - `Convo_VA_Comp.pdf` : convolution de v.a. composée avec loi exponentielle/Gamma lorsque les paramètres bêta son différent ou identique et v.a. multivariée discète
 - `Panjer_DePril.pdf` : preuve pour les algorithmes de Panjer et DePril 
 - `PoissonTeicher_ExpoEFGM.pdf` : preuves relative aux lois Poisson Teicher; pmf, espérance conditionelle et expo EFGM; espérance conditionelle
+- `Tetraedre.pdf` : représentation géométrique d'une classe de Fréchet lorsque les marginals sont Bernoulli
 
 
 ### Exercices 
