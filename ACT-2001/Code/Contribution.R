@@ -1,6 +1,6 @@
 ##################################################
 ### ACT-2001 
-### Calcule de contribution selon la régle Euleue
+### Calcule de contribution selon la régle Euleur
 ### Jérémie Barde
 ##################################################
 m <- 1e6
