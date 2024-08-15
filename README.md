@@ -21,6 +21,7 @@ Ce dossier contient des exemples de codes R pour diverses notions du cours.
 ### Ressources
 Ce dossier contient des documents PDF présentant les démonstrations et des exemples numériques de diverses notions du cours.
 - `Convo_PoComp.pdf` : preuve de la loi de la somme de v.a. de loi Poisson composée.
+- `Convo_Uniforme_Beta.pdf` : exemple de convolution pour deux loi bêta.
 - `Mesure_risque.pdf` : Résumé des propriétés suivies par certaines mesures de risque, avec preuves pour certaines d'entre elles.
 - `Preuve_EspT_TVaR.pdf` : "Preuves des expressions de l'espérance tronquée, de la VaR et de la TVaR pour plusieurs lois.
 
