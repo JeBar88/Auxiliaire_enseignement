@@ -14,8 +14,11 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 
 ### Code
 Ce dossier contient des exemples de codes R pour diverses notions du cours.
-- `Contriubtion.R` : calculer la contribution à la mesure VaR et TVaR selon le principe d'Euler par simulation.
+
+- `Code_typique.R` : code typique à savoir faire impérativement. Ex : espérance, variance, stop-loss, VaR et TVaR.
+- `Contribution.R` : calculer les contributions au mesure VaR et TVaR par simulation.
 - `Convolution.R` : convolution de v.a. aléatoire discrète.
+- `Simulation_IC.R` : calculer des intevalles de confiance pour les approximations faites par simulation.
 - `Simulation_SA.R` : simulation de v.a. composée (4 techniques).
 
 ### Ressources
