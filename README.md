@@ -15,7 +15,7 @@ Ce dossier contient des fichiers RMarkdown qui expliquent diverses notions du co
 ### Code
 Ce dossier contient des exemples de codes R pour diverses notions du cours.
 
-- `Code_typique.R` : code typique à savoir faire impérativement. Ex : espérance, variance, stop-loss, VaR et TVaR.
+- `Code_typique.R` : code de base du cours. Ex : espérance, variance, stop-loss, VaR et TVaR.
 - `Contribution.R` : calculer les contributions au mesure VaR et TVaR par simulation.
 - `Convolution.R` : convolution de v.a. aléatoire discrète.
 - `Simulation_IC.R` : calculer des intevalles de confiance pour les approximations faites par simulation.
