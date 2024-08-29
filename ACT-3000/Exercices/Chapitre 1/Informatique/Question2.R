@@ -1,6 +1,6 @@
-############
-# Question 2 informatique chapitre  1 ------------------------------------------
-############
+### ACT-3000
+## Chapitre 1 informatique : Question 2
+## Jérémie Barde
 
 x <- 0:100
 fm <- 0.6 * I(x == 0) + 0.3 * dpois(x, 0.1) + 0.1 * dpois(x, 0.2)

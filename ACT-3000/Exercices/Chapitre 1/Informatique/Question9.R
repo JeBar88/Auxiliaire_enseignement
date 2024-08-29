@@ -1,7 +1,8 @@
-##################################################
-### ACT-3000 : Exercice 9 informatique chapitre 1
-##################################################
-library(actuar)
+### ACT-3000
+## Chapitre 1 informatique : Question 2
+## Jérémie Barde
+
+### Variable
 nfft <- 2^13
 lam <- 0.6 - 0.1 * 1:5
 lamN <- sum(lam)

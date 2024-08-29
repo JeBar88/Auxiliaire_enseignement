@@ -1,6 +1,8 @@
-############
-# Question 10 informatique chapitre  1 -----------------------------------------
-############
+### ACT-3000
+## Chapitre 1 informatique : Question 2
+## Jérémie Barde
+
+### Variable
 nFFT <- 2^10
 b <- c(0.1, 0.5)
 q <- b[1]/b[2]
