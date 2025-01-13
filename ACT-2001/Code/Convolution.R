@@ -11,7 +11,14 @@ fx <- dpois(x, lam[1])
 fy <- dpois(x, lam[2])
 apply(cbind(fx, fy), 2, sum) # vérif
 
+## Code basé sur le formule théorique
 fs <- sapply(x, function(k) sum(fx[0:k + 1] * fy[k:0 + 1]))
+
+## Code alternatif
+dom <- outer(x, x, '+')
+fxy <- outer(fx, fy)
+fs <- sapply(x, function(k) sum(fxy[dom == k]))
+
 # Vérif
 sum(fs)
 cbind(sum(lam), sum(fs * x))
