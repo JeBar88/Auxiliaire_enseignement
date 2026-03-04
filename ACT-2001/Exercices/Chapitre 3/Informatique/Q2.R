@@ -11,12 +11,10 @@ s <- 0.8
 set.seed(2019)
 U <- matrix(runif(2 *m), ncol = 2, byrow = T)
 head(U)
-tail(U)
+U[c(1, 2, m), ]
 
-x1 <- qgamma(U[,1], a, lam)
-head(x1)
-tail(x1)
+X1 <- qgamma(U[,1], a, lam)
+X1[c(1, 2, m)]
 
-x2 <- qlnorm(U[,2], mu, s)
-head(x2, 4)
-tail(x2,1)
+X2 <- qlnorm(U[,2], mu, s)
+X2[c(1, 2, m)]
