@@ -3,33 +3,54 @@
 ## Jérémie Barde
 
 ### Fonction utile ###
+# dcomo <- function(x1, x2, Fx1, Fx2){
+#   fx <- matrix(numeric(length(x1) * length(x2)), ncol = length(x2))
+#   pcomo <- function(x1, x2) {
+#     ifelse(x1 < 0 | x2 < 0, 0, pmin(Fx1[x1 + 1], Fx2[x2 + 1]))
+#   }
+#   
+#   for (i in x1){
+#     for (j in x2){
+#       fx[i + 1, j + 1] <-  pcomo(i, j) - pcomo(i-1, j) - pcomo(i, j-1) + pcomo(i-1, j-1)
+#     }
+#   }
+#   fx
+# }
+# danti <- function(x1, x2, Fx1, Fx2){
+#   fx <- matrix(numeric(length(x1) * length(x2)), ncol = length(x2))
+#   panti <- function(x1, x2) {
+#     ifelse(x1 < 0 | x2 < 0, 0, pmax(Fx1[x1 + 1] + Fx2[x2 + 1] - 1, 0))
+#   }
+#   
+#   for (i in x1){
+#     for (j in x2){
+#       
+#       fx[i + 1, j + 1] <-  panti(i, j) - panti(i-1, j) - panti(i, j-1) + panti(i-1, j-1)
+#     }
+#   }
+#   fx
+# }
+
 dcomo <- function(x1, x2, Fx1, Fx2){
-  fx <- matrix(numeric(length(x1) * length(x2)), ncol = length(x2))
-  pcomo <- function(x1, x2) {
-    ifelse(x1 < 0 | x2 < 0, 0, pmin(Fx1[x1 + 1], Fx2[x2 + 1]))
-  }
+  Fx1 <- c(0, Fx1)
+  Fx2 <- c(0, Fx2)
   
-  for (i in x1){
-    for (j in x2){
-      fx[i + 1, j + 1] <-  pcomo(i, j) - pcomo(i-1, j) - pcomo(i, j-1) + pcomo(i-1, j-1)
-    }
-  }
-  fx
+  pcomo <- function(x1, x2) pmin(Fx1[x1 + 2], Fx2[x2 + 2])
+  f <- function(x1, x2) pcomo(x1, x2) - pcomo(x1-1, x2) - pcomo(x1, x2-1) + pcomo(x1-1, x2-1)
+  
+  outer(x1, x2, Vectorize(f))
 }
+
 danti <- function(x1, x2, Fx1, Fx2){
-  fx <- matrix(numeric(length(x1) * length(x2)), ncol = length(x2))
-  panti <- function(x1, x2) {
-    ifelse(x1 < 0 | x2 < 0, 0, pmax(Fx1[x1 + 1] + Fx2[x2 + 1] - 1, 0))
-  }
+  Fx1 <- c(0, Fx1)
+  Fx2 <- c(0, Fx2)
   
-  for (i in x1){
-    for (j in x2){
-      
-      fx[i + 1, j + 1] <-  panti(i, j) - panti(i-1, j) - panti(i, j-1) + panti(i-1, j-1)
-    }
-  }
-  fx
+  panti <- function(x1, x2) pmax(Fx1[x1 + 2] + Fx2[x2 + 2] - 1, 0)
+  f <- function(x1, x2) panti(x1, x2) - panti(x1-1, x2) - panti(x1, x2-1) + panti(x1-1, x2-1)
+  
+  outer(x1, x2, Vectorize(f))
 }
+
 dn <- function(k, f){
   
   fs <- function(s) sum(sapply(0:s, function(i) f[i + 1, s - i + 1]))
