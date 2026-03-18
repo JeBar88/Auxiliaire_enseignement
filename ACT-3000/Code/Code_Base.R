@@ -2,80 +2,83 @@
 ## Exemple de code de base et FFT
 ## Jérémie Barde
 
-### Ex 1 : X - Po(2)
-lam <- 2
-x <- 0:100
-fx <- dpois(x, lam)
+##### Exemple 1 -- X - Po(2) ####
+lam <- 10
+k <- 0:1000
+fx <- dpois(k, lam)
 sum(fx)
 
 ## Repartition
 Fx <- cumsum(fx)
 
 ## Espérance et variance
-Esp <- sum(x * fx)
-Var <- sum(x^2 * fx) - Esp^2
+Esp <- sum(k * fx)
+Var <- sum(k^2 * fx) - Esp^2
 cbind(Esp, Var)
 
 ## VaR
-k <- 0.9
-VaR <- x[min(which(Fx >= k))]
+u <- 0.9
+VaR <- k[min(which(Fx >= u))]
 
 ## TVaR
-sl <- sum(pmax(x - VaR, 0) * fx) # Stop-Loss
-TVaR <- VaR + 1/(1 - k) * sl
+sl <- sum(pmax(k - VaR, 0) * fx)
+TVaR <- VaR + 1/(1 - u) * sl # Formule avec Stop-Loss
 cbind(VaR, sl, TVaR)
 
 ## Espérance tronquée
-EspT <- sum(x * I(x > VaR) * fx)
-TVaR2 <- 1/(1 - k) * (EspT + VaR * (Fx[VaR + 1] - k)) # Ne pas faire je vous en suplie !!!
+EspT <- sum(k * I(k > VaR) * fx)
+TVaR2 <- 1/(1 - u) * (EspT + VaR * (Fx[VaR + 1] - u)) # Moins recommandé !
 cbind(TVaR, TVaR2)
 
-### Ex 2 : produit de Convo : X - Po(10), Y - Bin(n = 10, q = 0.3)
+## Franchise et limite
+# Y = min(max(X - 2, 0), 8)
+k <- pmin(pmax(k - 2, 0), 8)
+km <- unique(k)
+fy <- tapply(fx, k, sum)
+EY <- sum(km*fy)
+EY2 <- sum(k*fx)
+cbind(EY, EY2)
+
+#### Exemple 2 -- produit de Convo : X - Po(10), Y - Bin(10, 0.3) ####
 lam <- 10
 n <- 10
 q <- 0.3
-x <- 0:100
-fx <- dpois(x, lam)  
-fy <- dbinom(x, n, q)
-apply(cbind(fx, fy), 2, sum) # sum(fx) et sum(fy)
+k <- 0:100 # Choisir pour S en tenant compte de la v.a. S
+fm1 <- dpois(k, lam)  
+fm2 <- dbinom(k, n, q)
+sum(fm1); sum(fm2)
 
-s <- 0:100
-fs <- sapply(s, function(s) sum(fx[1:(s+1)]*fy[(s+1):1]))
+fs <- sapply(k, function(k) sum(fm1[0:k + 1]*fm2[k:0 + 1]))
 # Vérif
 sum(fs)
 Esp_theo <- lam + n*q
-Esp <- sum(s * fs)  
+Esp <- sum(k * fs)  
 cbind(Esp_theo, Esp)  
 
 # Avec fft
 nfft <- 2^6
-x <- 0:(nfft - 1)
-fx <- dpois(x, lam)  
-fy <- dbinom(x, n, q)
-apply(cbind(fx, fy), 2, sum) # sum(fx) et sum(fy)
+k <- 0:(nfft - 1)
+fm1 <- dpois(k, lam)  
+fm2 <- dbinom(k, n, q)
+sum(fm1) ; sum(fm2)
 
-fst <- fft(fx) * fft(fy)
+fst <- fft(fm1) * fft(fm2)
 fs <- Re(fft(fst, T))/nfft
-sum(fs * x)
+sum(k*fs)
 
-## Après même chose que Ex 1
+## Après même chose que Exemple 1
 # Repartition pour s = 10, 20, 30
 Fs <- cumsum(fs)
-Fs[c(11, 21, 31)]
+Fs[c(10, 20, 30) + 1]
 
 # VaR k = 0.9
-VaR <- s[min(which(Fs >= k))]
+u <- 0.9
+VaR <- k[min(which(Fs >= u))]
 
 # TVaR k = 0.9
-TVaR <- VaR + 1/(1 - k)*sum(pmax(s - VaR, 0) * fs) 
+TVaR <- VaR + 1/(1 - u)*sum(pmax(k - VaR, 0) * fs) 
 cbind(VaR, TVaR)
 
 
-
-
-
-
-  
-  
 
 

@@ -2,7 +2,7 @@
 ## Exemple pour les cas comonotonne et animonotonne
 ## Jérémie Barde
 
-### Fonction utile ###
+#### Fonction utile avec boucle ####
 # dcomo <- function(x1, x2, Fx1, Fx2){
 #   fx <- matrix(numeric(length(x1) * length(x2)), ncol = length(x2))
 #   pcomo <- function(x1, x2) {
@@ -30,7 +30,7 @@
 #   }
 #   fx
 # }
-
+#### Fonction utile avec outer ####
 dcomo <- function(x1, x2, Fx1, Fx2){
   Fx1 <- c(0, Fx1)
   Fx2 <- c(0, Fx2)
@@ -58,7 +58,7 @@ dn <- function(k, f){
   
 }
 
-#### Comonotone et antimonotone ####
+#### Exemple 1 -- Comonotone/antimonotone ####
 lam <- c(2, 3)
 m1 <- 0:50
 m2 <- m1
