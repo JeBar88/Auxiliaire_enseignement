@@ -2,81 +2,51 @@
 ## Exemple de base pour une v.a discrète bivariée
 ## Jérémie Barde
 
-##### Fonction utile
-dPoTei <- function(m1, m2, lam1, lam2, a){
-  f <- matrix(numeric(length(m1) * length(m2)), ncol = length(m2))
-  
-  for (i in m1){
-    for (j in m2){
-      
-      k <- 0:min(i, j)
-      
-      f[i + 1, j + 1] <-  sum(dpois(k, a) * dpois(i - k, lam1 - a) * dpois(j - k, lam2 - a))
-    }
-  }
-  f
-}
+#### Fonction utile ####
 repart <- function(x, y, fxy){
-  f <- matrix(numeric(length(x)*length(y)), ncol = length(y))
-  for (i in x) {
-    for (j in y) {
-      f[i + 1, j + 1] <- sum(fxy[0:i + 1, 0:j + 1])
-    }
-  }
-  f
+  f <- function(i, j) sum(fxy[0:i + 1, 0:j + 1])
+  outer(x, y, Vectorize(f))
 }
-dn <- function(k, f){
-  
+
+ds <- function(k, f){
   fs <- function(s) sum(sapply(0:s, function(i) f[i + 1, s - i + 1]))
   sapply(k, fs)
-  
 }
-ds <- function(k, f){
-  fx <- numeric(length(k))
-  
-  fs <- function(s){
-    tot <- 0
-    for (i in 0:s){
-      tot <- tot + f[i + 1, s - i + 1]
-    }
-    tot
-  }
-  
-  for(i in k){
-    fx[i + 1] <- fs(i)
-  }
-  fx
-} # même chose que dn
 
-### Loi discrete ###
-fxy <- matrix(c(0.5, 0.05, 0.05,
-                0.05, 0.3, 0.01,
-                0.01, 0.02, 0.01), ncol = 3, byrow = T)
-x <- 0:2
-y <- x
+#### Exemple 1 -- Loi discrete ####
+fm12 <- matrix(c(0.5, 0.05, 0.05,
+                 0.05, 0.3, 0.01,
+                 0.01, 0.02, 0.01), ncol = 3, byrow = T)
+k <- 0:2
 
-# 1)
-fx <- apply(fxy, 1, sum)
-fy <- apply(fxy, 2, sum)
+## Calculer les marginales
+fm1 <- apply(fm12, 1, sum)
+fm2 <- apply(fm12, 2, sum)
 
-espX <- sum(fx * x)
-espY <- sum(fy * y)
-EspXY <- sum(outer(0:2, 0:2, "*")*fxy)
+## Calcule EMi et VarMi
+Em1 <- sum(fm1 * k)
+Em2 <- sum(fm2 * k)
+Em12 <- sum(outer(k, k, "*")*fm12)
 
-# 2)
-varX <- sum(fx * x^2) - espX^2
-varY <- sum(fy * y^2) - espY^2
-cov <- EspXY - espX * espY
-pp <- cov/sqrt(varX*varY)
+Vm1 <- sum(k^2*fm12) - Em1^2
+Vm2 <- sum(k^2*fm12) - Em2^2
 
-# 3)
-Fxy <- repart(x, y, fxy)
+## Coveriance et correlation de Pearson
+cov <- Em12 - Em1*Em2
+pp <- cov/sqrt(Vm1*Vm2)
 
-# 4) S = X + Y
-fxy0 <- matrix(0, ncol=5, nrow=5)
-fxy0[1:nrow(fxy), 1:ncol(fxy)] <- fxy
+## Fonction de repartition
+Fm12 <- repart(k, k, fm12)
 
-fs <- dn(0:4, fxy0)
-fs
+## V.a. S = M1 + M2
+kmax <- max(k)*2 + 1
+fm12_0 <- matrix(0, ncol=kmax, nrow=kmax)
+fm12_0[k + 1, k + 1] <- fm12
+
+fs <- ds(0:4, fm12_0)
+c("ES_test"=sum(0:4*fs), "ES"=Em1 + Em2)
+
+
+
 
 
