@@ -21,7 +21,7 @@ lam <- c(2, 3)
 a0 <- 1.5
 a <- 2
 b <- c(0.1, 10)
-u <- 0.95
+u <- 0.99
 
 ## Densité de la loi Teicher
 fm12 <- dPoTei(k, k, lam[1], lam[2], a0)
