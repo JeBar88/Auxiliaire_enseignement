@@ -60,7 +60,7 @@ ds <- function(k, d, f) {
 #### Exemple 1 -- Loi discrete ####
 fm12 <- matrix(c(0.5, 0.05, 0.05,
                  0.05, 0.3, 0.01,
-                 0.01, 0.02, 0.01), ncol = 3, byrow = T)
+                 0.01, 0.02, 0.01), ncol = 3, byrow = TRUE)
 k <- 0:2
 
 ## Calculer les marginales
