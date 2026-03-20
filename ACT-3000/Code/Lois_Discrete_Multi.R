@@ -68,6 +68,19 @@ dPoTeibiv <- function(k1, k2, lam, a0){
   }
   outer(k1, k2, Vectorize(f))
 }
+dPoTeibiv_old <- function(m1, m2, lam1, lam2, a0){
+  f <- matrix(numeric(length(m1) * length(m2)), ncol = length(m2))
+
+  for (i in m1){
+    for (j in m2){
+
+      k <- 0:min(i, j)
+
+      f[i + 1, j + 1] <-  sum(dpois(k, a0) * dpois(i - k, lam1 - a0) * dpois(j - k, lam2 - a0))
+    }
+  }
+  f
+}
 dBernCGMR <- function(qt, q0) {
   f <- (1 - q0) * Reduce(outer, lapply(qt, function(p) c(1 - p, p)))
   f[length(f)] <- f[length(f)] + q0
