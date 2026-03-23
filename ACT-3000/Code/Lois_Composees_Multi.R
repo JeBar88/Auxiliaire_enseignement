@@ -205,9 +205,6 @@ Fs(20)
 Es_test <- sum(fm*am/b)
 cbind(Es_test, Es)
 
-
-
-
 #### Loi Poisson Teicher bivariée composée -- Bi~Ga(ai, bi) ####
 # Voir ACT-3000/Ressources/Convo_VA_Comp.pdf (GitHub)
 nfft <- 2^10
