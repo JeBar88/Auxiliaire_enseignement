@@ -4,6 +4,8 @@
 ## # Loi Poisson de Teicher
 ## # Loi Bernoulli CGMR
 ## # Loi Binomial bivariée de Marshall-Olking
+## # Comonotonne et Antimonotonne
+## # Comonotonne iid
 ## Jérémie Barde
 
 #### Package utile ####
@@ -277,5 +279,103 @@ cbind("Es_test"=sum(0:(nfft - 1)*fs), Es)
 k2 <- 0:6
 fs <- ds(fm)
 cbind("Es_test"=sum(k2*fs), Es)
+
+
+
+#### Comonotonne et Antimonotonne ####
+lam <- c(2, 3)
+k <- 0:50
+
+### Fonction de répartition marginales
+Fm1 <- ppois(k, lam[1])
+Fm2 <- ppois(k, lam[2])
+
+### Espérance
+Emi <- lam
+Es <- sum(Emi)
+
+### Comonotonne
+## Fonction de masse de probabilité conjointe
+fm12c <- dcomo(k, k, Fm1, Fm2)
+
+## Espérance du produit
+Em12c <- sum(outer(k, k, "*") * fm12c)
+
+## Covariance et corréliation de Pearson
+covc <- Em12c - prod(lam)
+ppc <- covc/sqrt(prod(lam))
+cbind(Em12c, covc, ppc)
+
+## V.a. S
+kmax <- max(k)*2
+ks <- 0:kmax
+fsc <- ds(fm12c)
+Esc_test <- sum(ks*fsc)
+
+# Verif : Espérace
+cbind(Esc_test, Es)
+
+### Antimonotonne
+## Fonction de masse de probabilité conjointe
+fm12a <- danti(k, k, Fm1, Fm2)
+
+## Espérance du produit
+Em12a <- sum(outer(k, k, "*") * fm12a)
+
+## Covariance et corréliation de Pearson
+cova <- Em12a - prod(lam)
+ppa <- covc/sqrt(prod(lam))
+cbind(Em12a, cova, ppa)
+
+## V.a. S
+kmax <- max(k)*2
+ks <- 0:kmax
+fsa <- ds(fm12a)
+Esa_test <- sum(ks*fsa)
+
+# Verif : Espérace
+cbind(Esa_test, Es)
+
+#### Comonotonne iid -- M = (M1, M2) ####
+k <- 0:100
+n <- 2
+r <- 5
+q <- 0.25
+
+### Fonction de répartition marginales
+Fm <- pnbinom(k, r, q)
+
+### Espérance
+Em <- r*(1 - q)/q
+Es <- n*Em
+
+### Fontion de masse de probabilité marginales
+fm12 <- dcomo(k, k, Fm, Fm)
+
+### V.a. S
+## Méthode 1 : Approche brute
+kmax <- max(k)*2
+ks <- 0:kmax
+fs <- ds(fm12)
+Es_test <- sum(ks*fs)
+
+# Verif : Espérance
+cbind(Es_test, Es)
+
+## Méthode 2 : Car comonotonne et iid, on a S = M1 + M2 = 2M
+fs <- dnbinom(ks/2, r, q)
+Es_test <- sum(ks*fs)
+
+# Verif : Espérance
+cbind(Es_test, Es)
+
+
+
+
+
+
+
+
+
 
 

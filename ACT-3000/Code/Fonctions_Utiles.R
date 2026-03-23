@@ -37,7 +37,7 @@ repart_nd <- function(f){
   f
 }
 
-#### Aggrégatio ####
+#### Aggrégation ####
 ds_2d <- function(k, f){
   fs <- function(s) sum(sapply(0:s, function(i) f[i + 1, s - i + 1]))
   sapply(k, fs)
@@ -105,4 +105,25 @@ dBinBivMO <- function(k1, k2, n, q, p11) {
           (factorial(l)*factorial(i - l)*factorial(j - l)*factorial(n - i - j + l)))
   }
   outer(k1, k2, Vectorize(f))
+}
+
+#### Comonotonne et antimonotonne ####
+dcomo <- function(x1, x2, Fx1, Fx2){
+  Fx1 <- c(0, Fx1)
+  Fx2 <- c(0, Fx2)
+  
+  pcomo <- function(x1, x2) pmin(Fx1[x1 + 2], Fx2[x2 + 2])
+  f <- function(x1, x2) pcomo(x1, x2) - pcomo(x1-1, x2) - pcomo(x1, x2-1) + pcomo(x1-1, x2-1)
+  
+  outer(x1, x2, Vectorize(f))
+}
+
+danti <- function(x1, x2, Fx1, Fx2){
+  Fx1 <- c(0, Fx1)
+  Fx2 <- c(0, Fx2)
+  
+  panti <- function(x1, x2) pmax(Fx1[x1 + 2] + Fx2[x2 + 2] - 1, 0)
+  f <- function(x1, x2) panti(x1, x2) - panti(x1-1, x2) - panti(x1, x2-1) + panti(x1-1, x2-1)
+  
+  outer(x1, x2, Vectorize(f))
 }
