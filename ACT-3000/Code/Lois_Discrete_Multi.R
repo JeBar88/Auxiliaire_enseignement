@@ -4,8 +4,6 @@
 ## # Loi Poisson de Teicher
 ## # Loi Bernoulli CGMR
 ## # Loi Binomial bivariée de Marshall-Olking
-## # Loi gamma bivariée CRMM
-## # Loi normle multivariée
 ## Jérémie Barde
 
 #### Package utile ####
@@ -55,10 +53,10 @@ ds_3d <- function(k, f){
   }
   sapply(k, fs)
 }
-ds <- function(k, d, f) {
+ds <- function(f) {
   index <- arrayInd(seq_along(f), dim(f)) - 1
   sums <- rowSums(index)
-  sapply(k, function(s) sum(f[sums == s]))
+  sapply(0:max(sums), function(s) sum(f[sums == s]))
 }
 
 dPoTeibiv <- function(k1, k2, lam, a0){
@@ -93,6 +91,17 @@ dBernCGMR_old <- function(qt, q0){
   f_vec <- (1 - q0)*pr + q0*I(apply(perm, 1, prod) == 1)
   f <- array(f_vec, dim = rep(2, d))
   f
+}
+dBinBivMO <- function(k1, k2, n, q, p11) {
+  p10 <- q[1] - p11
+  p01 <- q[2] - p11
+  p00 <- 1 - p01 - p10 - p11
+  f <- function(i, j) {
+    l <- max(i + j - n, 0):min(i, j)
+    sum((factorial(n)*p11^l*p10^(i - l)*p01^(j - l)*p00^(n - i - j + l))/
+          (factorial(l)*factorial(i - l)*factorial(j - l)*factorial(n - i - j + l)))
+  }
+  outer(k1, k2, Vectorize(f))
 }
 
 #### Loi discrète quelconque ####
@@ -129,7 +138,7 @@ fm12_0[k + 1, k + 1] <- fm12
 
 fs <- ds_2d(0:kmax, fm12_0)
 # ou
-fs <- ds(0:kmax, d, fm12)
+fs <- ds(fm12)
 c("ES_test"=sum(0:kmax*fs), "ES"=Em1 + Em2)
 
 ### Exemple 2 - nd ###
@@ -197,7 +206,7 @@ Fm <- repart_nd(fm)
 ## V.a. S
 kmax <- max(k)*d
 k2 <- 0:kmax
-fs <- ds(k2, d, fm)
+fs <- ds(fm)
 sum(fs)
 c("Es_test"=sum(k2*fs), "Es"=sum(Emi))
 
@@ -234,21 +243,21 @@ sum(outer(pmin(m1, 7), m2 * I(m2 <= 6), '*')*fm12)
 ### V.a. N = M1 + M2
 Es <- sum(lam)
 
-## Façon 1 : N = K1 + K2 + 2K0
+## Méthode 1 : N = K1 + K2 + 2K0
 fk12 <- dpois(k, sum(lam - a0))
 f2k0 <- dpois(k/2, a0)
 fnt <- fft(fk12) * fft(f2k0)
 fn <- Re(fft(fnt, TRUE))/nfft
 cbind("Es_test"=sum(k*fn), Es)
 
-## Façon 2 : utiliser directement fgp (Recommandé de Jé)
+## Méthode 2 : utiliser directement fgp (Recommandé de Jé)
 fi <- numeric(nfft)
 fi[2] <- 1 
 fnt <- exp((lam[1] - a0)*(fft(fi) - 1)) * exp((lam[2] - a0)*(fft(fi) - 1)) * exp(a0*(fft(fi)^2 - 1))
 fn2 <- Re(fft(fnt, TRUE))/nfft
 cbind("Es_test"=sum(k*fn2), Es)
 
-## Façon 3 : Connaitre la loi de N (Preuve)
+## Méthode 3 : Connaitre la loi de N (Preuve)
 lamN <- sum(lam) - a0
 fb <- numeric(nfft)
 fb[2:3] <- c((sum(lam) - 2*a0)/lamN, a0/lamN)
@@ -256,9 +265,11 @@ fnt <- exp(lamN*(fft(fb) - 1))
 fn3 <- Re(fft(fnt, T))/nfft
 cbind("Es_test"=sum(k*fn3), Es)
 
-## Façon 4 : 'a la main'
-fn4 <- ds(m1, 2, fm12)
-cbind("Es_test"=sum(m1*fn4), Es)
+## Méthode 4 : 'a la main'
+kmax <- max(m1)*2
+k2 <- 0:kmax
+fn4 <- ds(fm12)
+cbind("Es_test"=sum(k2*fn4), Es)
 
 Fn <- cumsum(fn)
 u <- 0.99
@@ -267,7 +278,7 @@ TVaRN <- VaRN + 1/(1 - u)*sum(pmax(k - VaRN, 0)*fn)
 cbind(VaRN, TVaRN) 
 
 ##### Loi Bernoulli CGMR ####
-nfft <- 2^13
+nfft <- 2^3
 k <- 0:(nfft - 1) 
 d <- 3
 q0 <- 0.1
@@ -305,16 +316,60 @@ names(Covi) <- paste0("Cov", comb[1, ], comb[2, ])
 Es <- sum(q)
 fgpI <- function(t, q) (1 - q) + q*t
 
-## Façon   : Utiliser la fgp
+## Méthode   : Utiliser la fgp
 f <- numeric(nfft) ; f[2] <- 1 
 fst <- (1 - q0)*apply(outer(fft(f), qt, fgpI), 1, prod) + q0*fft(f)^d
 fs <- Re(fft(fst, TRUE))/nfft
 cbind("Es_test"=sum(k*fs), Es)
 
-## Façon 2 : utiliser la méthode brute
-fs <- ds(0:3, d, fi)
-cbind("Es_test"=sum(0:3*fs), Es)
+## Méthode 2 : utiliser la méthode brute
+kmax <- d
+k2 <- 0:kmax
+fs <- ds(fi)
+cbind("Es_test"=sum(k2*fs), Es)
 
+#### Loi Binomial bivariée de Marshall-Olking ####
+nfft <- 2^10
+n <- 3
+q <- c(0.2, 0.4)
+p11 <- 0.1
+k <- 0:n
 
+### pmf et cdf
+fm <- dBinBivMO(k, k, n, q, p11)
+Fm <- repart_nd(fm)
+
+### Marginales
+fm1 <- rowSums(fm)
+fm2 <- colSums(fm)
+
+### Espérance
+Emi <- n*q
+
+### Coveriance et correlation de Pearson
+Covm <- sum(outer(k, k, '*')*fm) - prod(Emi)
+
+## Verif
+Covm_test <- n*(p11 - prod(q))
+cbind(Covm_test, Covm)
+
+### V.a. S
+Es <- sum(Emi)
+
+## Méthode 1: Utiliser la fgp
+p10 <- q[1] - p11
+p01 <- q[2] - p11
+p00 <- 1 - p01 - p10 - p11
+
+fi <- numeric(nfft) ; fi[2] <- 1
+fit <- fft(fi)
+fst <- (p00 + p10*fit + p01*fit + p11*fit^2)^n
+fs <- Re(fft(fst, TRUE))/nfft
+cbind("Es_test"=sum(0:(nfft - 1)*fs), Es)
+
+## Méthode 2 : utiliser la méthode brute
+k2 <- 0:6
+fs <- ds(fm)
+cbind("Es_test"=sum(k2*fs), Es)
 
 
