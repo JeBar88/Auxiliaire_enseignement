@@ -1,0 +1,108 @@
+### ACT-3000
+## Fonctions utiles
+## Jérémie Barde
+
+##### Fonction de répartition Erlang généralisée ####
+perlgen <- function(x, b){
+  A <- sapply(seq_along(b), function(i) prod(b[-i]/(b[-i] - b[i])))
+  sum(A*pexp(x, b))
+}
+
+#### Répartition multivariée lois disrètes ####
+#### Répartition multivariée lois disrètes ####
+repart_2d <- function(x, y, fxy){
+  f <- function(i, j) sum(fxy[0:i + 1, 0:j + 1])
+  outer(x, y, Vectorize(f))
+}
+repart_3d <- function(k, d, f) {
+  res <- array(0, dim(f))
+  
+  for (i in k) {
+    for (j in k) {
+      for (l in k) {
+        res[i + 1, j + 1, l + 1] <- sum(f[0:i + 1, 0:j + 1, 0:l + 1])
+      }
+    }
+  }
+  res
+}
+
+# Explication: On calule les sommmes cumulatives en fixant les dimensions, comme 
+# apply mélange les dimensions on utilise aperm pour les remettres dans le bonne autre.
+repart_nd <- function(f){
+  d <- length(dim(f))
+  for (i in 1:d) {
+    f <- apply(f, (1:d)[-i], cumsum) |> aperm(order(c(i, (1:d)[-i])))
+  }
+  f
+}
+
+#### Aggrégatio ####
+ds_2d <- function(k, f){
+  fs <- function(s) sum(sapply(0:s, function(i) f[i + 1, s - i + 1]))
+  sapply(k, fs)
+}
+ds_3d <- function(k, f){
+  fs <- function(s){
+    res <- 0
+    for (k1 in 0:s) {
+      for (k2 in 0:(s - k1)) {
+        res <- res + f[k1 + 1, k2 + 1, (s - k1 - k2) + 1]
+      }
+    }
+    res
+  }
+  sapply(k, fs)
+}
+ds <- function(f) {
+  index <- arrayInd(seq_along(f), dim(f)) - 1
+  sums <- rowSums(index)
+  sapply(0:max(sums), function(s) sum(f[sums == s]))
+}
+#### Fonction de masse de probabilité multivariée discrète ####
+dPoTeibiv <- function(k1, k2, lam, a0){
+  f <- function(i, j){
+    k <- 0:min(i, j)
+    sum(dpois(k, a0) * dpois(i - k, lam[1] - a0) * dpois(j - k, lam[2] - a0))
+  }
+  outer(k1, k2, Vectorize(f))
+}
+dPoTeibiv_old <- function(m1, m2, lam1, lam2, a0){
+  f <- matrix(numeric(length(m1) * length(m2)), ncol = length(m2))
+  
+  for (i in m1){
+    for (j in m2){
+      
+      k <- 0:min(i, j)
+      
+      f[i + 1, j + 1] <-  sum(dpois(k, a0) * dpois(i - k, lam1 - a0) * dpois(j - k, lam2 - a0))
+    }
+  }
+  f
+}
+
+dBernCGMR <- function(qt, q0) {
+  f <- (1 - q0) * Reduce(outer, lapply(qt, function(p) c(1 - p, p)))
+  f[length(f)] <- f[length(f)] + q0
+  f
+}
+dBernCGMR_old <- function(qt, q0){
+  d <- length(qt)
+  perm <- expand.grid(rep(list(0:1), d))
+  pr <- apply(perm, 1, function(k) prod(dbinom(k, 1, qt)))
+  f_vec <- (1 - q0)*pr + q0*I(apply(perm, 1, prod) == 1)
+  f <- array(f_vec, dim = rep(2, d))
+  f
+}
+
+dBinBivMO <- function(k1, k2, n, q, p11) {
+  p10 <- q[1] - p11
+  p01 <- q[2] - p11
+  p00 <- 1 - p01 - p10 - p11
+  f <- function(i, j) {
+    l <- max(i + j - n, 0):min(i, j)
+    sum((factorial(n)*p11^l*p10^(i - l)*p01^(j - l)*p00^(n - i - j + l))/
+          (factorial(l)*factorial(i - l)*factorial(j - l)*factorial(n - i - j + l)))
+  }
+  outer(k1, k2, Vectorize(f))
+}
