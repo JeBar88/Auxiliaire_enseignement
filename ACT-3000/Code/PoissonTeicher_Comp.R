@@ -23,7 +23,7 @@ fW0t <- exp(g0*(fJ0t - 1))
 
 ### Variable L
 fLt <- fW1t*fW2t*fW0t
-fL <- Re(fft(fLt, T))/nfft
+fL <- Re(fft(fLt, TRUE))/nfft
 
 ### Fonction de répartition de S
 FS <- function(x) fL[1] + sum(fL[-1]*pgamma(x, k[-1], b[2]))
