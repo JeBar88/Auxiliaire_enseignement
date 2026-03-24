@@ -1,57 +1,11 @@
 ### ACT-2001
 ## Code de base à maîtriser pour v.a. discrètes
-## Code pour v.a. discrète
+## V.a. discrète, domaine finie
+## V.a. discrète, domaine infinie
+## V.a. discrète, domaine non aritmétique
 ## Jérémie Barde
 
-#### Exemple typique ####
-### X in {0, 5, 10, 15, 20}
-x <- seq(0, 20, 5)
-fx <- c(0.05, 0.1, 0.5, 0.3, 0.05) # serait donné
-
-## Fonction de répartition
-Fx <- cumsum(fx)
-
-## Espérance et variance
-Esp <- sum(x * fx)
-Var <- sum(x^2 * fx) - Esp^2
-cbind(Esp, Var)
-
-## Skewness et Kurtosis
-sum(((x - Esp)/sqrt(Var))^3 * fx)
-sum(((x - Esp)/sqrt(Var))^4 * fx)
-
-## Fonction stop-loss
-d <- 2
-SL <- sum(pmax(x - d, 0)*fx)
-SL
-
-## E[min(X, 5)]
-d <- 5
-sum(pmin(x, d)*fx)
-
-## VaR et TVaR
-u <- 0.9
-VaR <- x[min(which(Fx >= u))]
-TVaR <- VaR + sum(pmax(x - VaR, 0)*fx)/(1 - u) # approche par la Stop-loss
-cbind(VaR, TVaR)
-
-## Mesure entropique
-p <- 0.1 # jouer avec rho pour comprendre la dynamique
-ME <- 1/p*log(sum(exp(p*x)*fx))
-ME
-
-
-
-
-
-
-
-
-
-
-
-#### Code pour v.a. discrète -- Calcules des caractéristiques ####
-#### Exemple 1 : X~Bin(n = 10, q = 0.25)
+#### V.a. discrète domaine finie -- X~Bin(n = 10, q = 0.25) ####
 ### Définir les vairiables
 k <- 0:10 # Le domaine de la v.a M est k=1,2,...,10. Si on mets plus les props seront 0.
 n <- 10
@@ -65,7 +19,7 @@ fm[5 + 1] # Il faut faire +1 car les vecteur dans R commence à 1, fm[0] retourn
 cbind(k, fm) # Visuel pour mieux comprendre
 
 ### Fonction de répartition (cdf) -- ploi
-Fm <- cumsum(fm)
+Fm <- pbinom(k, n, q)
 ## Pr(M <= 5)
 Fm[5 + 1]
 
@@ -109,5 +63,62 @@ rho <- 0.5
 Entm <- 1/rho*log(sum(exp(k*rho)*fm))
 # Vérif: La mesure entropique tend vers E[M] quand rho -> 0
 
+#### V.a. discrète domaine infinie -- M1~Po(lam1 = 5) et M2~Po(lam2 = 500) ####
+### Le domaine est infinie, donc il faut mettre un domaine assez grand pour que la fmp somme à 1
+### Par exemple kmax=100
+kmax <- 100
+k <- 0:kmax
+lam <- c(5, 80)
 
+### fmp
+fm1 <- dpois(k, lam[1])
+fm2 <- dpois(k, lam[2])
+sum(fm1) # Good!
+sum(fm2) # Not Good!, normale la moyenne est 80 et le domaine à un valeur max de 100
 
+#### Par exemple kmax=1000
+kmax <- 1000
+k <- 0:kmax
+lam <- c(5, 80)
+
+### fmp
+fm1 <- dpois(k, lam[1])
+fm2 <- dpois(k, lam[2])
+sum(fm1) # Good!
+sum(fm2) # Good!
+
+### Fonction de répartition
+Fm1 <- dpois(k, lam[1])
+Fm2 <- dpois(k, lam[2])
+#### Les caractéristiques ce calcule exactement de la même façon ensuite
+
+#### V.a. discrète, domaine non aritmétique -- k=(5, 12, 64, 89, 230) #### 
+### Il n'est pas possible d'utiliser les fonctions dloi et ploi
+p <- c(0.45, 0.1, 0.25, 0.15, 0.05)
+vk <- c(5, 12, 64, 89, 230)
+u <- 0.9
+
+### Construire un vecteur complet
+kmax <- max(vk)
+k <- 0:kmax
+fm <- replace(numeric(kmax + 1), vk + 1, p) # Les probabilité p on été mis au bonne place
+
+### Foncton de répartition : on ne peux pas utiliser ploi
+Fm <- cumsum(fm)
+# Pr[M <= 60]
+Fm[60 + 1]
+
+### VaR : on ne peux pas utiliser qloi, on utilise la définiton VaR=inf{k;Pr(M >= k) = u}
+VaR <- k[min(which(Fm >= u))]
+cbind(k, Fm) # La première valeurs de k qui donne un Pr(M >= k) > u est 89
+
+### Exemple 2 : Construire un vecteur complet
+kax
+  
+  
+  
+  
+  
+  
+  
+  
