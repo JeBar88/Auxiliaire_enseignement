@@ -4,6 +4,7 @@
 ## # Discrétisation avec h=0.1, Lower
 ## # V.a.s composées et discrétisation
 ## # Aggrégation et discretisation
+## # Franchise ou limite et discretisation
 ## Jérémie Barde
 
 #### Packages utiles ####
@@ -172,8 +173,20 @@ cbind(ExTh, Eb)
 cbind(EyTh, Ex)
 cbind(EsTh, Es)
 
+#### Franchise ou limite et discretisation -- Y = min(X, 100), X~Ga(2, 3) ####
+k <- 0:1000
+a <- 2
+b <- 0.05
 
+### Fmp par discretisation
+fx <- pgamma(k, a, b) - pgamma(k - 1, a, b)
 
+### V.a Y
+ky <- pmin(k, 75)
+k <- unique(ky)
+fy <- tapply(fx, ky, sum)
+sum(k*fy)
+fy[75 + 1]
 
 
 

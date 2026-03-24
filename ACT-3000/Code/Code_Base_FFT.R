@@ -49,12 +49,6 @@ EY <- sum(km*fy)
 EY2 <- sum(k*fx)
 cbind(EY, EY2)
 
-
-
-
-
-
-
 #### Somme de v.a.s iid -- Xi~X~Po(5), i = {1, 10}, S = X1 + ... + X10 ####
 nfft <- 2^10
 n <- 10
