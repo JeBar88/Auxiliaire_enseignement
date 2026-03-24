@@ -1,77 +1,79 @@
 ### ACT-2001
-## Convolution par la méthode brute
+## Exemple de code pour le produit de convolution
 ## Jérémie Barde
 
-##### Exemple 1 #####
-### X - Po(3) et Y - Po(5), S = X + Y
+#### Exemple 1 -- M1~Po(3) et M2~Po(5) ####
 lam <- c(1, 2)
-x <- 0:20
+k <- 0:20
 
-fx <- dpois(x, lam[1])
-fy <- dpois(x, lam[2])
-apply(cbind(fx, fy), 2, sum) # vérif
+### Fmp de Mi
+fm1 <- dpois(k, lam[1])
+fm2 <- dpois(k, lam[2])
+# Vérif
+apply(cbind(fm1, fm2), 2, sum)
 
-## Code basé sur le formule théorique
-fs <- sapply(x, function(k) sum(fx[0:k + 1] * fy[k:0 + 1]))
+### V.a. S
+## Basé sur la formule théorique
+fs <- sapply(k, function(k) sum(fm1[0:k + 1] * fm2[k:0 + 1]))
 
-## Code alternatif
-dom <- outer(x, x, '+')
-fxy <- outer(fx, fy)
-fs <- sapply(x, function(k) sum(fxy[dom == k]))
+## Code alternatif (Dominique Chevalier)
+sums <- outer(k, k, '+')
+fm12 <- outer(fm2, fm1)
+fs <- sapply(k, function(k) sum(fm12[sums == k]))
 
 # Vérif
 sum(fs)
-cbind(sum(lam), sum(fs * x))
+cbind(sum(lam), sum(fs * k))
 cbind(dpois(5, sum(lam)), fs[6])
 
-##### Exemple 2 #####
-### domaine arbitraire
-x <- c(5, 10, 15, 20, 50) # serait donné
-y <- c(5, 15, 23, 60) # serait donné
+#### Exemple 2 -- Domaine non aritmétique ####
+### Domaine et fmp
+m1 <- c(5, 10, 15, 20, 50) 
+m2 <- c(5, 15, 23, 60) 
 
-px <- c(0.5, 0.20, 0.15, 0.1, 0.05) # serait donné
-py <- c(0.55, 0.15, 0.2, 0.1) # serait donné
+pm1 <- c(0.5, 0.20, 0.15, 0.1, 0.05) 
+pm2 <- c(0.55, 0.15, 0.2, 0.1)
 
-## Expérance X et Y
-EX <- sum(px * x)
-EY <- sum(py * y)
-cbind(EX, EY)
+### Espérance
+Em1 <- sum(m1*pm1)
+Em2 <- sum(m2*pm2)
+Es <- Em1 + Em2
 
-## S = X + Y
-s <- 0:110
-fx <- numeric(length(s)) # vecteur de 0
-fy <- fx
+### Construction de vecteur complet
+k <- 0:150
+fm1 <- replace(numeric(length(k)), m1 + 1, pm1)
+fm2 <- replace(numeric(length(k)), m2 + 1, pm2)
 
-fx[x + 1] <- px # on remplie au bonne place
-fy[y + 1] <- py
-
-fs <- sapply(s, function(k) sum(fx[0:k + 1]*fy[k:0 + 1]))
+### V.a. S 
+fs <- sapply(k, function(k) sum(fm1[0:k + 1]*fm2[k:0 + 1]))
 
 # Vérif
 sum(fs)
-cbind(EX + EY, sum(fs*s))
+cbind(Es, "E_test"=sum(fs*k))
 
-##### Exemple 2 #####
-### Xi - Po(i/25) i in {1, 100}, S = X1 + ... + X100
-i <- 1:100
+#### Exemple 2 -- Xi - Po(i/25) i in {1, 100}, S = M1 +...+ M100 ####
+n <- 100
+i <- 1:n
 lam <- i/25
-x <- 0:300
+k <- 0:300
 
-ES <- sum(lam)
+### Espérance
+Es <- sum(lam)
 
-fx <- sapply(lam, function(i) dpois(x, i))
-apply(fx, 2, sum)
+### Fmp de Mi
+fm <- sapply(lam, function(i) dpois(k, i))
+apply(fm, 2, sum)
 
-fs <- sapply(x, function(k) sum(fx[0:k + 1, 1]*fx[k:0 + 1, 2]))
-for (i in 3:100) {
-  fs <- sapply(x, function(k) sum(fs[0:k + 1]*fx[k:0 + 1, i]))
+### V.a. S : Méthode brute
+fs <- fm[, 1]
+for (i in 2:n) {
+  fs <- sapply(k, function(k) sum(fs[0:k + 1] * fm[k:0 + 1, i]))
 }
 
 # Vérif
 sum(fs)
-cbind(ES, sum(fs * x))
-cbind(dpois(210, ES), fs[211])
-
+cbind(Es, sum(fs * k))
+cbind(dpois(210, Es), fs[211])
 
 
 
