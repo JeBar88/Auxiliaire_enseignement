@@ -112,13 +112,5 @@ Fm[60 + 1]
 VaR <- k[min(which(Fm >= u))]
 cbind(k, Fm) # La première valeurs de k qui donne un Pr(M >= k) > u est 89
 
-### Exemple 2 : Construire un vecteur complet
-kax
-  
-  
-  
-  
-  
-  
   
   
