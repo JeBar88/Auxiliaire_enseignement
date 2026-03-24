@@ -1,8 +1,11 @@
 ### ACT-2001
-## Code de base à maîtriser pour v.a. discrètes
-## V.a. discrète, domaine finie
-## V.a. discrète, domaine infinie
-## V.a. discrète, domaine non aritmétique
+## Code de base pour v.a. discrètes
+## # V.a. discrète, domaine finie
+## # V.a. discrète, domaine infinie
+## # V.a. discrète, domaine non aritmétique
+## Exemple pour v.a. discrète
+## # Multiplication par une constante
+## # Franchise et limite
 ## Jérémie Barde
 
 #### V.a. discrète domaine finie -- X~Bin(n = 10, q = 0.25) ####
@@ -114,3 +117,42 @@ cbind(k, Fm) # La première valeurs de k qui donne un Pr(M >= k) > u est 89
 
   
   
+#### Multiplication par une constante -- Y = 10X, X~Po(5) ####
+k <- 0:1000
+lam <- 5
+b <- 10
+
+### Espérance théorique
+ExTh <- lam
+EyTh <- b*ExTh
+
+### Fmp de la v.a. Y -- Pr(Y = k) = Pr(bX = k) = Pr(X = k/5)
+fy <- dpois(k/b, lam) # Warings normale, 
+
+### Espérance
+Ey <- sum(k*fy)
+cbind(EyTh, Ey)
+
+
+
+
+
+
+
+
+
+#### Franchise et limite -- Y = min(max(X - 2, 0), 8) ####
+k <- 0:1000
+r <- 2.5
+q <- 0.7
+u <- 0.9
+
+### Fmp de X
+fx <- dnbinom(k, r, q)
+sum(fx*k)
+
+### Fmp de Y
+ky <- pmin(pmax(k - 2, 0), 8) # On transforme le domaine
+k <- unique(ky) # On garde seulement les valeurs uniques
+fy <- tapply(fx, ky, sum) # On somme les fx selon les valeurs de ky
+
