@@ -3,7 +3,7 @@
 ## # V.a. discrète, domaine finie
 ## # V.a. discrète, domaine infinie
 ## # V.a. discrète, domaine non aritmétique
-## Exemple pour v.a. discrète
+## Example pour v.a. discrète
 ## # Multiplication par une constante
 ## # Franchise et limite
 ## Jérémie Barde
