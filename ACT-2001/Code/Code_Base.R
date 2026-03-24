@@ -115,8 +115,6 @@ Fm[60 + 1]
 VaR <- k[min(which(Fm >= u))]
 cbind(k, Fm) # La première valeurs de k qui donne un Pr(M >= k) > u est 89
 
-  
-  
 #### Multiplication par une constante -- Y = 10X, X~Po(5) ####
 k <- 0:1000
 lam <- 5
@@ -132,14 +130,6 @@ fy <- dpois(k/b, lam) # Warings normale,
 ### Espérance
 Ey <- sum(k*fy)
 cbind(EyTh, Ey)
-
-
-
-
-
-
-
-
 
 #### Franchise et limite -- Y = min(max(X - 2, 0), 8) ####
 k <- 0:1000
