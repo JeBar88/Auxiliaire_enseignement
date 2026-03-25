@@ -7,6 +7,8 @@
 ## # Approximation par simulation somme fini de v.a. iid
 ## # Approximation par simulation v.a. composée
 ## # Approximation par simulation v.a. mélange
+## # Approximation par simulation de la contribution
+## # Intervalle de confiance pour approximation par simulation
 ## Jérémie Barde
 
 #### Package utiles ####
@@ -74,6 +76,9 @@ mean(M == 5) # Vrai valeur : 0.0583992
 
 ### Approximation de la cdf -- Pr(M <= 5)
 mean(M <= 5) # Vrai valeur : 0.9802723
+# ou
+Fn <- ecdf(M)
+Fn(5)
 
 ### Approximation de l'espérance
 Em <- mean(M) 
@@ -350,3 +355,140 @@ X <- rexp(m, Y)
 
 # Vérif
 cbind("Ex_test"=mean(X), Ex)
+
+#### Contribution ####
+m <- 1e6
+a <- c(2.5, 3)
+lam <- c(150, 200)
+u <- 0.95
+
+### Espérance Théorique
+ExTh <- lam/(a - 1) 
+Es <- sum(ExTh)
+
+### Simuler 1 millions de réalisation de Xi
+X <- mapply(function(a, lam) rpareto(m, a, lam), a, lam)
+apply(X, 2, mean)
+
+### Variable S
+S <- rowSums(X)
+mean(S)
+
+## VaR
+VaRs <- sort(S)[u*m] 
+# ou
+quantile(S, u, type=1) # type=1 car on veux la valeur exacte dans S
+
+## TVaR
+TVaRs <- mean(S[S > VaRs])
+
+## Contribution à la VaR : Pas une très bonne approximation
+CVaRx1 <- sum(X[, 1] * I(S == VaRs))
+CVaRx2 <- sum(X[, 2] * I(S == VaRs))
+
+# Verif
+cbind(CVaRx1 + CVaRx2, VaRs)
+
+## Contribution à la VaR : Pas une très bonne approximation
+TVaR <- function(k) mean(S[S > sort(S)[k * m]])
+CTVaRx1 <- function(k) mean(X[, 1] * I(S > sort(S)[k*m]))/(1 - k)
+CTVaRx2 <- function(k) mean(X[, 2] * I(S > sort(S)[k*m]))/(1 - k)
+
+kappa <- 0.9
+cbind(CTVaRx2(kappa) + CTVaRx1(kappa), TVaR(kappa))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Intervalle de confiance ####
+m <- 1e4 # modfier pour voir l'impacte de m sur les intervalles
+a <- 3
+b <- 0.1
+lam <- 60
+
+### Espérance théorique
+ExTh <- a/b
+EyTh <- lam/(a - 1)
+EsTh <- ExTh + EyTh
+
+### Simuler des réalisation de X et Y
+X <- rgamma(m, 3, 0.1)
+Y <- rpareto(m, 3, 60)
+S <- X + Y
+mean(S)
+
+### Fonction de répartition empirique
+Fn <- function(x) mean(S <= x)
+
+## Intervalle de confiance
+ES_Fn <- sd(S <= 50)/sqrt(m)
+Fn(50) + c(-1, 0, 1) * qnorm(0.975)*ES_Fn
+
+### Moyenne
+Es <- mean(S)
+
+## Intervalle de confiance
+ES_Es <- sd(S)/sqrt(m)
+Es + c(-1, 0, 1) * qnorm(0.975)*ES_Es
+
+### Stop-loss
+d <- 20
+SLs <- mean(pmax(S - d, 0))
+
+## Intervalle de confiance
+ES_SLs <- sd(pmax(S - d, 0))/sqrt(m)
+SLs + c(-1, 0, 1) * qnorm(0.975)*ES_SLs
+
+### Mesure VaR
+u <- 0.9
+VaRs <- sort(S)[u*m]
+
+## Intervalle de confiance
+sdR <- sqrt(m*u*(1 - u))
+k0 <- floor(qnorm(0.975)*sdR + 0.5)
+VaRs_IC <- sort(S)[(m*u) + c(-1, 1) * k0]
+c("VaRs"=VaRs, VaRs_IC)
+
+### Mesure TVaR
+TVaRs <- mean(S[S > VaRs]) # ou VaR + mean(pmax(S - VaR, 0))/(1 - u)
+
+## Intervalle de confiance
+ES_TVaRs <- sqrt(var(pmax(S - VaRs, 0))/((1 - u)^2*m))
+TVaRs_IC <- TVaRs + c(-1, 1)*qnorm(0.975)*ES_TVaRs
+c("TVaRs"=TVaRs, TVaRs_IC)
+
+### Mesure entropique
+p <- 0.001
+entros <- 1/p*log(mean(exp(p*S)))
+
+## Intervalle de confiance
+# On commence par faire l'intervalle de la fgm
+fgms <- mean(exp(p*S))
+ES_fgms <- sd(exp(p*S))/sqrt(m)
+fgms_IC <- fgms + c(-1, 1)*qnorm(0.975)*ES_fgms
+
+entros_IC <- 1/p*log(fgms_IC)
+c("entros"=entros, entros_IC)
+
+
+
+
+
+
+
+
+
