@@ -1,14 +1,18 @@
 ### ACT-2001
-## Code de base pour v.a. discrètes
+## Code de base pour v.a. discrètes 
 ## # V.a. discrète, domaine finie
 ## # V.a. discrète, domaine infinie
 ## # V.a. discrète, domaine non aritmétique
-## Example pour v.a. discrète
 ## # Multiplication par une constante
 ## # Franchise et limite
+## Code de base pour v.a. continues 
+## # V.a. continue
+## # V.a. continue mélange
+## Code de base pour v.a. composées
 ## Jérémie Barde
 
-#### V.a. discrète domaine finie -- M~Bin(n = 10, q = 0.25) ####
+#### V.a. discrète domaine finie ####
+### M~Bin(n = 10, q = 0.25)
 ### Définir les vairiables
 k <- 0:10 # Le domaine de la v.a M est k=1,2,...,10. Si on mets plus les props seront 0.
 n <- 10
@@ -66,7 +70,8 @@ rho <- 0.5
 Entm <- 1/rho*log(sum(exp(k*rho)*fm))
 # Vérif: La mesure entropique tend vers E[M] quand rho -> 0
 
-#### V.a. discrète domaine infinie -- M1~Po(lam1 = 5) et M2~Po(lam2 = 500) ####
+#### V.a. discrète domaine infinie ####
+#### M1~Po(lam1 = 5) et M2~Po(lam2 = 500)
 ### Le domaine est infinie, donc il faut mettre un domaine assez grand pour que la fmp somme à 1
 ### Par exemple kmax=100
 kmax <- 100
@@ -95,7 +100,8 @@ Fm1 <- dpois(k, lam[1])
 Fm2 <- dpois(k, lam[2])
 #### Les caractéristiques ce calcule exactement de la même façon ensuite
 
-#### V.a. discrète, domaine non aritmétique -- k=(5, 12, 64, 89, 230) #### 
+#### V.a. discrète, domaine non aritmétique #### 
+#### k=(5, 12, 64, 89, 230)
 ### Il n'est pas possible d'utiliser les fonctions dloi et ploi
 p <- c(0.45, 0.1, 0.25, 0.15, 0.05)
 vk <- c(5, 12, 64, 89, 230)
@@ -115,7 +121,8 @@ Fm[60 + 1]
 VaR <- k[min(which(Fm >= u))]
 cbind(k, Fm) # La première valeurs de k qui donne un Pr(M >= k) > u est 89
 
-#### Multiplication par une constante -- Y = 10X, X~Po(5) ####
+#### Multiplication par une constante ####
+#### Y = 10X, X~Po(5)
 k <- 0:1000
 lam <- 5
 b <- 10
@@ -131,7 +138,8 @@ fy <- dpois(k/b, lam) # Warings normale,
 Ey <- sum(k*fy)
 cbind(EyTh, Ey)
 
-#### Franchise et limite -- Y = min(max(X - 2, 0), 8) ####
+#### Franchise et limite ####
+#### Y = min(max(X - 2, 0), 8)
 k <- 0:1000
 r <- 2.5
 q <- 0.7
@@ -146,3 +154,107 @@ ky <- pmin(pmax(k - 2, 0), 8) # On transforme le domaine
 k <- unique(ky) # On garde seulement les valeurs uniques
 fy <- tapply(fx, ky, sum) # On somme les fx selon les valeurs de ky
 
+
+#### ---------------------------------------------------------------------- ####
+#### V.a. continue ####
+#### X~Ga(5, 0.1), on utilise toujours les formules de l'annexe
+a <- 5
+b <- 0.1
+u <- 0.9
+
+### Fonction de densité -- dloi
+dgamma(100, a, b)
+
+### Fonction de répartition (cdf) -- ploi
+pgamma(100, a, b)
+
+### Espérance -- E[M] = \sum_{k = 0}^10 k*Pr(M = k)
+a/b
+
+### Variance -- \sum_{k = 0}^10 k^2*Pr(M = k) - E[M]^2
+a/b^2
+
+### Skewness et Kurtosis -- E[((M - E[M])/sigma)^3] et E[((M - E[M])/sigma)^4]
+
+
+### Stop-Loss -- E[max(M - d, 0)]
+SLx <- function(d) a/b*pgamma(d, a + 1, b, low=FALSE) - d*pgamma(d, a, b, low=FALSE)
+SLx(10)
+
+### Espérance tronquée -- E[M * I(X < d)]
+ExT <- function(d) a/b*pgamma(d, a + 1, b)
+ExT(100)
+
+### Espérance conditionelle -- E[M | M <= d]
+ExC <- function(d) a/b*pgamma(d, a + 1, b)/pgamma(d, a, b)
+ExC(100)
+
+### Fonction inverse ou Value-at-Risk (VaR) -- qloi
+VaRx <- function(u) qgamma(u, a, b)
+pgamma(VaRx(0.65), a, b) # Remarque retrouve toujours u avec les v.a. continue
+
+### Tail-Value-at-Risk (TVaR)
+TVaRx <- function(u) {
+  VaR <- qgamma(u, a, b)
+  1/(1 - u)*a/b*pgamma(VaR, a + 1, b, low=FALSE)
+}
+TVaRx(0.9)
+
+### Mesure entropique -- 1/rho*ln(fgmM(rho))
+Ents <- function(rho) 1/rho*log((b/(b - rho))**a)
+Ents(0.05)
+# Vérif: La mesure entropique tend vers E[M] quand rho -> 0
+
+#### V.a. continue mélange ####
+#### Y = pX1 + (1 - p)X2 avec Xi~Ga(a, bi)
+a <- 5
+b <- c(0.1, 0.25)
+p <- c(0.4, 0.6)
+
+### Fonction de densité -- dloi
+fy <- function(x) sum(p*dgamma(x, a, b))
+fy(100)
+
+### Fonction de répartition (cdf) -- ploi
+Fy <- function(x) sum(p*pgamma(x, a, b))
+Fy(10)
+
+p[1]*pgamma(10, a, b[1]) + p[2]*pgamma(10, a, b[2]) 
+
+### Espérance -- 
+sum(p*a/b)
+
+### Variance -- \sum_{k = 0}^10 k^2*Pr(M = k) - E[M]^2
+sum(p^2*a/b^2)
+
+### Skewness et Kurtosis -- E[((M - E[M])/sigma)^3] et E[((M - E[M])/sigma)^4]
+
+### Stop-Loss -- E[max(M - d, 0)]
+SLx <- function(d, a, b) a/b*pgamma(d, a + 1, b, low=FALSE) - d*pgamma(d, a, b, low=FALSE)
+SLy <- function(d) p[1]*SLx(d, a, b[1]) + p[2]*SLx(d, a, b[2])
+SLy(2)
+
+### Espérance tronquée -- E[M * I(X < d)]
+ExT <- function(d, a, b) a/b*pgamma(d, a + 1, b)
+EyT <- function(d) p[1]*ExT(d, a, b[1]) + p[2]*ExT(d, a, b[2])
+EyT(100)
+
+### Espérance conditionelle -- E[X | X < d]
+EyC <- function(d) EyT(d)/Fy(d)
+EyC(50)
+
+### Fonction inverse ou Value-at-Risk (VaR) -- On peut pas utiliser qloi
+## On inverse numériquement avec optimize
+## On chercher la valeur de x telque Fx(x) - u = 0
+Fx(200)
+VaRx <- function(u) optimize(function(x) abs(Fx(x) - u), c(0, 200))$min
+
+### Tail-Value-at-Risk (TVaR)
+TVaRx <- function(u) {
+  VaR <- VaRx(u)
+  p[1]*1/(1 - u)*a/b[1]*pgamma(VaR, a + 1, b[1], low=FALSE) + 
+    p[2]*1/(1 - u)*a/b[2]*pgamma(VaR, a + 1, b[2], low=FALSE)
+}
+TVaRx(0.9)
+
+#### ---------------------------------------------------------------------- ####
