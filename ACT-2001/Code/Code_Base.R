@@ -8,7 +8,7 @@
 ## # Franchise et limite
 ## Jérémie Barde
 
-#### V.a. discrète domaine finie -- X~Bin(n = 10, q = 0.25) ####
+#### V.a. discrète domaine finie -- M~Bin(n = 10, q = 0.25) ####
 ### Définir les vairiables
 k <- 0:10 # Le domaine de la v.a M est k=1,2,...,10. Si on mets plus les props seront 0.
 n <- 10
