@@ -18,7 +18,6 @@ terlgen <- function(VaR, b){
 }
 
 #### Répartition multivariée lois disrètes ####
-#### Répartition multivariée lois disrètes ####
 repart_2d <- function(x, y, fxy){
   f <- function(i, j) sum(fxy[0:i + 1, 0:j + 1])
   outer(x, y, Vectorize(f))
@@ -36,8 +35,8 @@ repart_3d <- function(k, d, f) {
   res
 }
 
-# Explication: On calule les sommmes cumulatives en fixant les dimensions, comme 
-# apply mélange les dimensions on utilise aperm pour les remettres dans le bonne autre.
+# Explication: On calule les sommmes cumulatives en fixant les dimensions,
+# comme apply mélange les dimensions on utilise aperm pour les remettres dans le bonne autre.
 repart_nd <- function(f){
   d <- length(dim(f))
   for (i in 1:d) {
@@ -126,7 +125,6 @@ dcomo <- function(x1, x2, Fx1, Fx2){
   
   outer(x1, x2, Vectorize(f))
 }
-
 danti <- function(x1, x2, Fx1, Fx2){
   Fx1 <- c(0, Fx1)
   Fx2 <- c(0, Fx2)
