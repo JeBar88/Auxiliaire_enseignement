@@ -258,3 +258,93 @@ TVaRx <- function(u) {
 TVaRx(0.9)
 
 #### ---------------------------------------------------------------------- ####
+#### V.a. composées ####
+#### Exemple 1 : X~BinComp(n=3, q=0.25, Fb) avec B~Exp(0.1)
+k <- 0:3
+n <- 3
+q <- 0.25
+b <- 0.1
+
+### Espérance et variance
+Em <- n*q
+Eb <- 1/b
+Ex <- Em*Eb
+
+Vm <- n*q*(1 - q)
+Vb <- 1/b^2
+Vx <- Em*Vb + Vm*Eb^2
+
+### Fmp de M
+fm <- dbinom(k, n, q)
+
+### Fonction de répartition : on conditionne sur les valeurs de M
+Fx <- function(x) {
+  fm[1] + fm[2]*pexp(x, b) + fm[3]*pgamma(x, 2, b) + fm[4]*pgamma(x, 3, b)
+}
+Fx(10)
+# On reconnait un mélange d'Erlang
+Fy <- function(x) fm[1] + sum(fm[-1]*pgamma(x, k[-1], b))
+Fy(10)
+
+#### Exemple 2 : X~PoComp(10, Fb) avec B~Ga(2, 0.1)
+k <- 0:100
+lam <- 10
+a <- 2
+b <- 0.1
+u <- 0.99
+
+### Espérance et variance
+Em <- lam
+Eb <- a/b
+Ex <- Em*Eb
+
+Vm <- lam
+Vb <- a/b^2
+Vx <- Em*Vb + Vm*Eb^2
+
+### Fmp de M
+fm <- dpois(k, lam)
+sum(fm)
+
+### Fonction de répartition : on ne peut pas enumérer tous les cas
+Fx <- function(x) fm[1] + sum(fm[-1]*pgamma(x, a*k[-1], b))
+
+## Espérance et variance
+sum(fm*a*k/b) ; Ex
+sum(fm*a*k*(a*k + 1))/b^2 - Ex^2
+
+## Stop-Loss
+SLx <- function(d) {
+  sum(fm*(a*k/b*pgamma(d, a*k + 1, b, low=FALSE) - d*pgamma(d, a*k, b, low=FALSE)))
+} 
+SLx(10)
+
+## Espérance tronquée -- E[X * I(X > 20)]
+ExT <- function(d) {
+  sum(fm*a*k/b*pgamma(d, a*k + 1, b, low=FALSE))
+} 
+ExT(100)
+
+## VaR
+Fx(1000)
+VaRx <- optimize(function(x) abs(Fx(x) - u), c(0, 1000))$min
+Fx(VaRx)
+
+## TVaR
+TvaRx <- sum(fm*a*k/b*pgamma(VaRx, a*k + 1, b, low=FALSE))/(1 - u)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

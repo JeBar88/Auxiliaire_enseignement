@@ -6,6 +6,7 @@
 ## # Loi Binomial bivariée de Marshall-Olking
 ## # Loi gamma bivariée CRMM
 ## # Loi normle multivariée
+## # Cas Comonotonne et antimonotonne
 ## Jérémie Barde
 
 #### Packages ####
@@ -143,6 +144,7 @@ Emi <- lam
 Exi <- Emi*c(a/b[1], b[2]/(a - 1))
 Es <- sum(Exi)
 
+
 ### Simulation du Vecteur M (Fréquence)
 K1 <- rpois(m, lam[1] - a0)
 K2 <- rpois(m, lam[2] - a0)
@@ -237,28 +239,6 @@ cbind("Es_test"=mean(S), "Es"=n*sum(q))
 
 #### Loi gamma CRMM ####
 m <- 1e6
-a0 <- 1.5
-
-m <- 1e6
-a0 <- 1.5
-lam <- c(2, 3)
-a <- 3
-b <- c(0.1, 10)
-
-Emi <- lam
-Exi <- Emi*c(a/b[1], b[2]/(a - 1))
-Es <- sum(Exi)
-
-### Simulation du Vecteur M (Fréquence)
-K1 <- rpois(m, lam[1] - a0)
-K2 <- rpois(m, lam[2] - a0)
-K0 <- rpois(m, a0)
-
-M1 <- K1 + K0
-M2 <- K2 + K0
-M <- cbind(M1, M2)
-
-m <- 1e6
 d <- 5
 g0 <- 1
 lam <- c(2, 3)
@@ -315,6 +295,53 @@ cbind("Es_test"=mean(S), "Es"=sum(mu))
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Cas Comonotonne et antimonotonne ####
+#### M1~Po(5) et M2~BinNeg(5, 0.2)
+m <- 1e6
+lam <- 5
+r <- 5
+q <- 0.2
+
+### Espérance théorique
+Emi <- c(lam, r*(1 - q)/q) 
+Es <- sum(Emi)
+
+### Cas comonotonne
+## Simuler 1 million de réalisation du vecteur M et v.a. S
+U <- runif(1e6)
+M1 <- qpois(U, lam)
+M2 <- qnbinom(U, r, q)
+S <- M1 + M2
+
+## Covariance et correlation de Pearson
+cov(M1, M2)
+cor(M1, M2, method = "pearson")/(sd(M1)*sd(M2))
+
+### Cas antinomotonne
+## Simuler 1 million de réalisation du vecteur M et v.a. S
+U <- runif(1e6)
+M1 <- qpois(U, lam)
+M2 <- qnbinom(1 - U, r, q)
+S <- M1 + M2
+
+## Covariance et correlation de Pearson
+cov(M1, M2)
+cor(M1, M2, method = "pearson")/(sd(M1)*sd(M2))
 
 
 

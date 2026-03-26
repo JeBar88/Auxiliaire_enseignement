@@ -32,9 +32,9 @@ Es <- sum(Ex)
 pm <- as.vector(fm12)
 
 ### Calcules paramètres loi gamma
-comb <- expand.grid(k, k)
-am1 <- a[1]* comb[, 1]
-am2 <- a[2]* comb[, 2]
+comb <- arrayInd(seq_along(fm12), dim(fm12)) - 1
+am1 <- a[1]*comb[, 1]
+am2 <- a[2]*comb[, 2]
 am <- am1 + am2
 
 ### Fonction de répartition conjointe

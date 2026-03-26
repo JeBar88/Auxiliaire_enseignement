@@ -30,8 +30,8 @@ Em1 <- sum(fm1 * k)
 Em2 <- sum(fm2 * k)
 Em12 <- sum(outer(k, k, "*")*fm12)
 
-Vm1 <- sum(k^2*fm12) - Em1^2
-Vm2 <- sum(k^2*fm12) - Em2^2
+Vm1 <- sum(k^2*fm1) - Em1^2
+Vm2 <- sum(k^2*fm2) - Em2^2
 
 ## Coveriance et correlation de Pearson
 cov <- Em12 - Em1*Em2
@@ -39,6 +39,7 @@ pp <- cov/sqrt(Vm1*Vm2)
 
 ## Fonction de repartition
 Fm12 <- repart_2d(k, k, fm12)
+# ou
 # Fm12 <- repart_nd(fm12)
 
 ## V.a. S = M1 + M2
