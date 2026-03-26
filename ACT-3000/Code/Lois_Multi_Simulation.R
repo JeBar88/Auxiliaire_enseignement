@@ -234,9 +234,6 @@ cbind("Eii_test"=apply(M, 2, mean), "Emi"=n*q)
 cbind("Covi_test"=cov(M)[1, 2], "Covi"=n*(p11 - prod(q)))
 cbind("Es_test"=mean(S), "Es"=n*sum(q))
 
-
-
-
 #### Loi gamma CRMM ####
 m <- 1e6
 d <- 5
