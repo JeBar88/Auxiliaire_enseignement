@@ -169,14 +169,6 @@ CTVaRmi <- sapply(1:d, function(i)
   (Emi[i]*(1 - Fami[VaRS + 1, i]) + CVaRmi[i] * (Fs[VaRS + 1] - u))/(1 - u))
 c(CTVaRmi, "TVaRS_test"=sum(CTVaRmi), "TVaRS"=TVaRS)
 
-
-
-
-
-
-
-
-
 #### ---------------------------------------------------------------------- ####
 #### Contribution v.a. continue #### 
 #### Loi Gamma, bêta identiques ####
