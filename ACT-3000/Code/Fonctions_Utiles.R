@@ -2,10 +2,19 @@
 ## Fonctions utiles
 ## Jérémie Barde
 
-##### Fonction de répartition Erlang généralisée ####
+##### Erlang généralisée ####
+derlgen <- function(x, b){
+  P <- sapply(seq_along(b), function(i) prod(b[-i]/(b[-i] - b[i])))
+  sum(P*dexp(x, b))
+}
 perlgen <- function(x, b){
-  A <- sapply(seq_along(b), function(i) prod(b[-i]/(b[-i] - b[i])))
-  sum(A*pexp(x, b))
+  P <- sapply(seq_along(b), function(i) prod(b[-i]/(b[-i] - b[i])))
+  sum(P*pexp(x, b))
+}
+terlgen <- function(VaR, b){
+  P <- sapply(seq_along(b), function(i) prod(b[-i]/(b[-i] - b[i])))
+  A <- exp(-b*VaR)*(VaR + 1/b)
+  1/(1 - u)*sum(P*A)
 }
 
 #### Répartition multivariée lois disrètes ####
